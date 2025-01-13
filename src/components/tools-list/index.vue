@@ -168,10 +168,28 @@ const goType = (item) => {
   localStorage.setItem("risev_open_type_id", typeId.value);
 }
 
+// 获取分类logo
+const getCategoryLogo = (categoryId) => {
+  // 获取该分类下的第一个工具
+  const firstTool = sourceToolList.find(tool => tool.menuId.includes(categoryId))
+  if (firstTool) {
+    // 如果找到工具,返回其logo
+    return toolLogos.value[firstTool.target] || require('@/assets/images/default.svg')
+  }
+  // 如果分类为空,返回默认logo
+  return require('@/assets/images/default.svg')
+}
+
+// 修改分类图标样式方法
 const getMaskImageStyle = (item) => {
   return {
-    maskImage: `url(${item.icon})`,
-  };
+    backgroundImage: `url(${getCategoryLogo(item.id)})`,
+    maskImage: 'none',
+    WebkitMaskImage: 'none',
+    backgroundSize: 'contain',
+    backgroundPosition: 'center',
+    backgroundRepeat: 'no-repeat'
+  }
 }
 
 const dragStart = (event, index) => {
@@ -340,18 +358,26 @@ onMounted(() => {
       justify-content: center;
       width: 32px;
       height: 32px;
-      background: rgba(105, 101, 234, 0.08);
+      background: #fff;
       border-radius: 8px;
       margin-right: 10px;
+      overflow: hidden;
     }
 
     .type-icon-item {
-      width: 18px;
-      height: 18px;
-      fill: #908dea;
-      color: #908dea;
-      background-color: #908dea;
-      mask-size: 18px 18px;
+      width: 24px;
+      height: 24px;
+      background-color: transparent;
+    }
+
+    .active {
+      .type-icon {
+        background: rgba(255, 255, 255, 0.12);
+      }
+      
+      .type-icon-item {
+        filter: brightness(2);
+      }
     }
   }
 }
