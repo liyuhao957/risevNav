@@ -12,6 +12,8 @@ import "@/assets/css/note.less";
 
 import 'animate.css';
 
+import draggable from './directives/draggable'
+
 const app = createApp(App);
 
 import * as ElementPlusIconsVue from "@element-plus/icons-vue";
@@ -21,3 +23,5 @@ app.use(ElementPlus).use(store).use(router).mount("#app");
 for (const [key, component] of Object.entries(ElementPlusIconsVue)) {
   app.component(key, component);
 }
+
+app.directive('draggable', draggable)

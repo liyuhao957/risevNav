@@ -29,31 +29,7 @@
         ></el-input>
       </div>
       <el-scrollbar height="100%" class="tool-items-box">
-        <div v-if="typeId == 7" class="list-box">
-          <div
-            class="tool"
-            draggable="true"
-            @click="openAccountType(item)"
-            v-for="(item, index) in accountTypeList"
-            :key="index"
-          >
-            <el-image class="logo" :src="item.logo" fit="contain">
-              <template #error>
-                <div class="image-slot">
-                  <el-icon>
-                    <Picture />
-                  </el-icon>
-                </div>
-              </template>
-            </el-image>
-            <div class="info-box">
-              <div class="name">{{ item.name }}</div>
-              <div class="desc">{{ item.desc }}</div>
-            </div>
-            <div class="account-share" v-if="item.type">{{ item.type }}</div>
-          </div>
-        </div>
-        <div class="list-box" v-if="typeId != 7">
+        <div class="list-box">
           <div
             v-if="toolList.length == 0"
             style="
@@ -78,7 +54,7 @@
             v-for="(item, index) in toolList"
             :key="index"
           >
-            <el-image class="logo" :src="item.logo" fit="contain">
+            <el-image class="logo" :src="toolLogos[item.target] || require('@/assets/images/default.svg')" fit="contain">
               <template #error>
                 <div class="image-slot">
                   <el-icon>
@@ -103,83 +79,11 @@
         </div>
       </el-scrollbar>
     </div>
-
-    <!---account dialog--->
-    <el-drawer
-      v-model="accountDrawer"
-      title="RiseV导航/Chatgpt共享"
-      direction="ltr"
-    >
-      <div class="account-drawer-bg">
-        <div style="color:chocolate;">自备魔法🎉</div>
-        <div style="margin-top: 10px;display: flex;align-items: center;">官方地址：https://chat.openai.com/<el-icon style="cursor: pointer;margin-left: 10px;"  @click="copyLink('https://chat.openai.com/')"><CopyDocument /></el-icon></div>
-        <p class="has-line-data" style="color:chocolate;">
-          <strong>账号池使用指南</strong>
-        </p>
-        <ul>
-          <li class="has-line-data" data-line-start="5" data-line-end="7">
-            <p class="has-line-data" data-line-start="5" data-line-end="6">
-              <strong>账号状态</strong
-              >：账号均处于正常使用状态，到期账号将被移除。
-            </p>
-          </li>
-          <li class="has-line-data" data-line-start="7" data-line-end="9">
-            <p class="has-line-data" data-line-start="7" data-line-end="8">
-              <strong>账号更换</strong
-              >：除非账号使用次数达到限制，否则无需更换账号。
-            </p>
-          </li>
-        </ul>
-        <p class="has-line-data" style="color:chocolate;">
-          <strong>共享账号对话信息提醒</strong>
-        </p>
-        <ul>
-          <li class="has-line-data" data-line-start="11" data-line-end="13">
-            <p class="has-line-data" data-line-start="11" data-line-end="12">
-              <strong>到期处理</strong
-              >：共享账号到期后，将更换密码并清除对话记录。
-            </p>
-          </li>
-          <li class="has-line-data" data-line-start="13" data-line-end="14">
-            <p class="has-line-data" data-line-start="13" data-line-end="14">
-              <strong>数据备份</strong>：请及时备份重要数据，以防丢失。
-            </p>
-          </li>
-        </ul>
-      </div>
-      <el-table :data="accountList" style="width: 100%">
-        <el-table-column prop="dueTime" label="过期时间" align="center" />
-        <el-table-column prop="remainder" label="剩余天数" align="center" />
-        <el-table-column prop="accountStar" label="账号" align="center">
-          <!----复制账号-->
-          <template #default="scope">
-            <div style="display: flex">
-              <div>{{ scope.row.accountStar }}</div>
-              <el-button link type="primary" size="small" @click="copyAccount(scope.row)">
-                复制
-              </el-button>
-            </div>
-          </template>
-        </el-table-column>
-        <el-table-column prop="pwdStar" label="密码" align="center">
-          <!----复制账号-->
-          <template #default="scope">
-            <div style="display: flex">
-              <div>{{ scope.row.accountStar }}</div>
-              <el-button link type="primary" size="small"  @click="copyPwd(scope.row)">
-                复制
-              </el-button>
-            </div>
-          </template>
-        </el-table-column>
-      </el-table>
-    </el-drawer>
-
   </div>
 </template>
 
 <script setup>
-import { onMounted, ref } from "vue";
+import { onMounted, ref, watch } from "vue";
 const typeId = ref(0);
 const keyword = ref("");
 import { Search } from "@element-plus/icons-vue";
@@ -187,64 +91,15 @@ import { ElMessage } from 'element-plus'
 import {
   RISEV_MENU_LIST,
   TOOLS_LIST,
-  ACCOUNT_TYPE_LIST,
 } from "@/assets/config.js";
+import { getWebsiteLogo } from '@/utils/logo'
+import { getCachedLogo, cacheLogo, cleanCache } from '@/utils/cache'
+
 const sourceToolList = TOOLS_LIST;
-const accountTypeList = ACCOUNT_TYPE_LIST;
 const toolList = ref([]);
-const accountDrawer = ref(false);
-const accountList = ref([]);
 const typeList = ref(RISEV_MENU_LIST);
-
-const copyLink = async (item) => {
-  try {
-    await navigator.clipboard.writeText(item);
-    ElMessage({
-      message: '复制成功',
-      type: 'success',
-    })
-  } catch (err) {
-    ElMessage({
-      message: '复制失败',
-      type: 'error',
-    })
-  }
-}
-
-const copyAccount = async (item) => {
-  try {
-    await navigator.clipboard.writeText(item.account);
-    ElMessage({
-      message: '复制成功',
-      type: 'success',
-    })
-  } catch (err) {
-    ElMessage({
-      message: '复制失败',
-      type: 'error',
-    })
-  }
-}
-
-const copyPwd = async (item) => {
-  try {
-    await navigator.clipboard.writeText(item.password);
-    ElMessage({
-      message: '复制成功',
-      type: 'success',
-    })
-  } catch (err) {
-    ElMessage({
-      message: '复制失败',
-      type: 'error',
-    })
-  }
-}
-
-const openAccountType = (item) => {
-  accountDrawer.value = true;
-  accountList.value = item.accountList;
-}
+const toolLogos = ref({});
+const loadingLogos = ref({});
 
 const getToolCollected = (collected) => {
   return collected
@@ -354,7 +209,52 @@ const dropTools = (event, index) => {
   }
 }
 
+const loadToolLogo = async (tool) => {
+  // 如果已经在加载中,直接返回
+  if (loadingLogos.value[tool.target]) return
+  
+  try {
+    // 先从缓存获取
+    const cached = getCachedLogo(tool.target)
+    if (cached) {
+      toolLogos.value[tool.target] = cached
+      return
+    }
+    
+    // 标记为加载中
+    loadingLogos.value[tool.target] = true
+    
+    // 获取logo
+    const logo = await getWebsiteLogo(tool.target)
+    
+    // 缓存logo
+    cacheLogo(tool.target, logo)
+    
+    // 更新显示
+    toolLogos.value[tool.target] = logo
+  } catch (error) {
+    console.error('加载工具logo失败:', error)
+    // 使用默认图标
+    toolLogos.value[tool.target] = require('@/assets/images/default.svg')
+  } finally {
+    // 清除加载中标记
+    loadingLogos.value[tool.target] = false
+  }
+}
+
+// 监听工具列表变化
+watch(toolList, (newList) => {
+  if(newList && newList.length > 0) {
+    newList.forEach(tool => {
+      loadToolLogo(tool)
+    })
+  }
+}, { immediate: true })
+
 onMounted(() => {
+  // 清理过期和旧版本缓存
+  cleanCache()
+  
   //获取本地存储的typeId
   const localTypeId = localStorage.getItem("risev_open_type_id");
   if (localTypeId) {
@@ -542,17 +442,6 @@ onMounted(() => {
           top: 15px;
         }
 
-        .account-share {
-          position: absolute;
-          right: 15px;
-          top: 15px;
-          background-color: #817dff;
-          color: #fff;
-          padding: 3px 8px;
-          border-radius: 3px;
-          font-size: 12px;
-        }
-
         .info-box {
           flex: 1;
           height: 100%;
@@ -586,10 +475,9 @@ onMounted(() => {
   }
 }
 
-.account-drawer-bg {
-  padding: 20px;
-  background-color: #f5f7fa;
-  border-radius: 8px;
-  margin-bottom: 20px;
+.tool-logo {
+  width: 40px;
+  height: 40px;
+  object-fit: contain;
 }
 </style>

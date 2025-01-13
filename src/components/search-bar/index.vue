@@ -300,17 +300,16 @@ onMounted(() => { });
 .search-left {
   margin-right: 10px;
 }
-</style>
-<style scoped>
-.search-left>>>.el-select__wrapper {
-  box-shadow: unset !important;
+
+.search-left :deep(.el-select__wrapper) {
+  box-shadow: none !important;
 }
 
-.search-left>>>.el-select__selected-item {
-  color: #000 !important;
+.search-left :deep(.el-select__selected-item) {
+  color: var(--text-color) !important;
 }
 
-.search-left>>>.el-select__icon {
-  color: #000 !important;
+.search-left :deep(.el-select__icon) {
+  color: var(--text-color) !important;
 }
 </style>

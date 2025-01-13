@@ -24,7 +24,7 @@
     }"
   >
     <img
-      src="@/assets/images/gongchuang1.jpeg"
+      src="@/assets/images/default.svg"
       style="width: 38px; height: 38px; border-radius: 50%"
     />
   </div>
