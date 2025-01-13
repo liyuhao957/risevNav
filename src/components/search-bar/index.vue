@@ -21,7 +21,11 @@
         <div v-show="isInputActive"
           :class="isInputActive ? 'search-like-content search-like-content-active' : 'search-like-content'">
           <el-scrollbar max-height="400px">
-            <div class="item" v-for="item in suggestions" :key="item">
+            <div class="item" 
+                 v-for="item in suggestions" 
+                 :key="item" 
+                 @click.stop="handleSuggestionClick(item, $event)"
+                 @mousedown.prevent>
               {{ item }}
             </div>
           </el-scrollbar>
@@ -39,22 +43,12 @@
 
 <script setup>
 import { useStore } from "vuex";
-import { onMounted, ref } from "vue";
-import $ from "jquery";
-// 定义一个全局的 JSONP 回调函数（确保它只在您的应用范围内可见）
-window.handleBaiduSuggestion = (data) => {
-  // 这里处理来自 Baidu 的响应数据
-  // 注意：这个函数将在全局作用域中被调用，而不是在 Vue 组件的作用域中
-  if (typeof data === "object" && data.s && data.s.length > 0) {
-    console.log(data.s);
-    suggestions.value = data.s;
-  }
-};
+import { onMounted, ref, nextTick } from "vue";
+import { ElMessage } from 'element-plus';
 
 const store = useStore();
 const isInputActive = ref(false);
 const suggestions = ref([]);
-
 const keyword = ref("");
 const searchType = [
   {
@@ -70,18 +64,120 @@ const searchType = [
 ];
 const searchTypeIndex = ref(0);
 
+// 获取百度搜索建议
+const getBaiduSuggestions = async (keyword) => {
+  // 空关键词直接返回空数组
+  if (!keyword.trim()) {
+    return [];
+  }
+  
+  try {
+    const timestamp = new Date().getTime();
+    const script = document.createElement('script');
+    const callbackName = `baiduSuggestionCallback_${timestamp}`;
+    
+    // 清理之前可能存在的同名回调和script标签
+    if (window[callbackName]) {
+      delete window[callbackName];
+    }
+    const oldScript = document.querySelector(`script[data-callback="${callbackName}"]`);
+    if (oldScript) {
+      document.body.removeChild(oldScript);
+    }
+    
+    const promise = new Promise((resolve, reject) => {
+      // 设置更长的超时时间
+      const timeoutId = setTimeout(() => {
+        if (window[callbackName]) {
+          delete window[callbackName];
+          if (script.parentNode) {
+            script.parentNode.removeChild(script);
+          }
+          resolve([]); // 超时时返回空数组而不是报错
+        }
+      }, 10000);
+      
+      window[callbackName] = (data) => {
+        clearTimeout(timeoutId);
+        if (data && data.s) {
+          resolve(data.s);
+        } else {
+          resolve([]); // 无效数据时返回空数组
+        }
+        // 清理回调和script标签
+        delete window[callbackName];
+        if (script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+      };
+    });
+    
+    script.src = `https://suggestion.baidu.com/su?wd=${encodeURIComponent(keyword.trim())}&cb=${callbackName}`;
+    script.setAttribute('data-callback', callbackName);
+    document.body.appendChild(script);
+    
+    return await promise;
+  } catch (error) {
+    console.warn('搜索建议请求异常:', error);
+    return []; // 出错时返回空数组
+  }
+};
+
+let currentRequest = null;
+
+function handleChange() {
+  if (keyword.value && keyword.value.trim()) {
+    if (window.timer) {
+      clearTimeout(window.timer);
+    }
+    window.timer = setTimeout(async () => {
+      try {
+        // 取消之前的请求
+        if (currentRequest) {
+          const oldCallbackName = currentRequest.callbackName;
+          if (window[oldCallbackName]) {
+            delete window[oldCallbackName];
+          }
+          const oldScript = document.querySelector(`script[data-callback="${oldCallbackName}"]`);
+          if (oldScript) {
+            document.body.removeChild(oldScript);
+          }
+        }
+        
+        // 创建新请求
+        const timestamp = new Date().getTime();
+        const callbackName = `baiduSuggestionCallback_${timestamp}`;
+        currentRequest = { callbackName };
+        
+        const results = await getBaiduSuggestions(keyword.value);
+        if (keyword.value.trim()) { // 再次检查关键词是否有效
+          suggestions.value = results;
+        }
+      } catch (error) {
+        console.warn('搜索建议获取失败:', error);
+        suggestions.value = [];
+      } finally {
+        currentRequest = null;
+      }
+    }, 300);
+  } else {
+    suggestions.value = [];
+  }
+}
+
 const changeSearchType = (index) => {
   searchTypeIndex.value = index;
 };
 
 const search = () => {
-  if (!keyword.value) return;
-  const urls = {
-    'Bing': `https://cn.bing.com/search?q=${keyword.value}`,
-    'Google': `https://www.google.com/search?q=${keyword.value}`,
-    'Baidu': `https://www.baidu.com/s?wd=${keyword.value}`
-  };
-  openUrl(urls[searchEngine.value]);
+  if (!keyword.value?.trim()) return;
+  const currentEngine = searchType[searchTypeIndex.value];
+  if (!currentEngine) {
+    ElMessage.error('搜索引擎配置错误');
+    return;
+  }
+  const searchUrl = `${currentEngine.value}${encodeURIComponent(keyword.value.trim())}`;
+  openUrl(searchUrl);
 }
 
 function handleFocus() {
@@ -90,39 +186,6 @@ function handleFocus() {
 function ShowDiv(strurls) {
   var urls = strurls["s"];
   console.log(urls);
-}
-
-function handleChange() {
-  if (keyword.value) {
-    //采用节流函数
-    if (window.timer) {
-      clearTimeout(window.timer);
-    }
-    window.timer = setTimeout(() => {
-      var qsData = {
-        wd: keyword.value,
-        p: "3",
-        cb: "handleBaiduSuggestion",
-        t: new Date().getTime(),
-      };
-
-      $.ajax({
-        url: "https://suggestion.baidu.com/su",
-        type: "GET",
-        dataType: "jsonp",
-        jsonp: "jsoncallback",
-        data: qsData,
-        timeout: 5000,
-        success: function (json) {
-          console.log(json);
-        },
-        error: function (xhr) { },
-      });
-    }, 300);
-  } else {
-    suggestions.value = [];
-
-  }
 }
 
 // 处理 blur 事件
@@ -139,7 +202,7 @@ const getSuggestion = async () => {
 }
 
 const openUrl = (url) => {
-  window.open(url);
+  window.open(url, '_blank');
 }
 
 const getBingSuggestion = async (keyword) => {
@@ -157,6 +220,30 @@ const getBingSuggestion = async (keyword) => {
     });
     return null;
   }
+}
+
+const handleSuggestionClick = async (suggestion, event) => {
+  // 阻止事件冒泡
+  event?.preventDefault();
+  event?.stopPropagation();
+  
+  // 更新关键词
+  keyword.value = suggestion;
+  isInputActive.value = false;
+  
+  // 确保在状态更新后执行搜索
+  await nextTick();
+  
+  // 构建搜索URL
+  const currentEngine = searchType[searchTypeIndex.value];
+  if (!currentEngine) {
+    ElMessage.error('搜索引擎配置错误');
+    return;
+  }
+  
+  // 使用window.open在新标签页打开
+  const searchUrl = `${currentEngine.value}${encodeURIComponent(suggestion.trim())}`;
+  window.open(searchUrl, '_blank');
 }
 
 onMounted(() => { });

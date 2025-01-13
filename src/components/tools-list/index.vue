@@ -132,12 +132,14 @@ const openUrl = (item) => {
 
 const search = () => {
   if (keyword.value) {
-    toolList.value = sourceToolList.filter(
-      (item) =>
-        item.name.toLowerCase().includes(keyword.value.toLowerCase()) ||
-        item.desc.toLowerCase().includes(keyword.value.toLowerCase()) ||
-        item.jp.toLowerCase().includes(keyword.value.toLowerCase())
-    );
+    toolList.value = sourceToolList.filter((item) => {
+      const searchTerm = keyword.value.toLowerCase();
+      return (
+        (item.name?.toLowerCase() || '').includes(searchTerm) ||
+        (item.desc?.toLowerCase() || '').includes(searchTerm) ||
+        (item.jp?.toLowerCase() || '').includes(searchTerm)
+      );
+    });
   } else {
     goType({ id: typeId.value });
   }
