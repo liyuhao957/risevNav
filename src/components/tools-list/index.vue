@@ -2,9 +2,12 @@
   <div class="tools-list">
     <div class="type-container" v-draggable="typeList" @end="saveOrder">
       <div
-        :class="typeId == item.id ? 'type active' : 'type'"
+        :class="{
+          'type': true,
+          'active': typeId === item.weight
+        }"
         v-for="(item, index) in typeList"
-        :key="item.id"
+        :key="item.name"
         @click="goType(item)"
         draggable="true"
         @dragstart="(event) => dragStart(event, index)"
@@ -54,7 +57,7 @@
             v-for="(item, index) in toolList"
             :key="index"
           >
-            <el-image class="logo" :src="toolLogos[item.target] || require('@/assets/images/default.svg')" fit="contain">
+            <el-image class="logo" :src="toolLogos[item.url] || require('@/assets/images/default.svg')" fit="contain">
               <template #error>
                 <div class="image-slot">
                   <el-icon>
@@ -65,7 +68,7 @@
             </el-image>
             <div class="info-box">
               <div class="name">{{ item.name }}</div>
-              <div class="desc">{{ item.desc }}</div>
+              <div class="desc">{{ item.shorthand }}</div>
             </div>
             <div class="edit" v-show="item.focusOn || item.collected">
               <img
@@ -84,22 +87,159 @@
 
 <script setup>
 import { onMounted, ref, watch } from "vue";
-const typeId = ref(0);
-const keyword = ref("");
 import { Search } from "@element-plus/icons-vue";
 import { ElMessage } from 'element-plus'
-import {
-  RISEV_MENU_LIST,
-  TOOLS_LIST,
-} from "@/assets/config.js";
+import dataService from '@/services/data'
 import { getWebsiteLogo } from '@/utils/logo'
 import { getCachedLogo, cacheLogo, cleanCache } from '@/utils/cache'
 
-const sourceToolList = TOOLS_LIST;
+const typeId = ref(0);
+const keyword = ref("");
 const toolList = ref([]);
-const typeList = ref(RISEV_MENU_LIST);
+const typeList = ref([]);
 const toolLogos = ref({});
 const loadingLogos = ref({});
+const loading = ref(false);
+const allTools = ref([]);
+
+// 获取所有工具并缓存
+const getAllTools = async () => {
+  try {
+    allTools.value = await dataService.getTools();
+  } catch (error) {
+    console.error('获取所有工具失败:', error);
+    allTools.value = [];
+  }
+}
+
+// 获取分类列表
+const getTypeList = async () => {
+  loading.value = true;
+  try {
+    const categories = await dataService.getCategories();
+    console.log('原始分类数据:', categories);
+    
+    typeList.value = categories;
+    // 如果本地存储有排序,使用本地存储的顺序
+    const localMenuList = localStorage.getItem('risev_menu_list');
+    if (localMenuList) {
+      console.log('本地存储的排序:', localMenuList);
+      const savedList = JSON.parse(localMenuList);
+      // 合并本地存储的顺序和新获取的分类
+      typeList.value = savedList.filter(item => 
+        categories.some(cat => cat.name === item.name)
+      );
+      // 添加新的分类
+      categories.forEach(cat => {
+        if (!typeList.value.some(item => item.name === cat.name)) {
+          typeList.value.push(cat);
+        }
+      });
+      console.log('合并后的分类列表:', typeList.value);
+    }
+  } catch (error) {
+    console.error('获取分类列表失败:', error);
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 获取工具列表
+const getToolList = async () => {
+  console.log('获取工具列表, typeId:', typeId.value);
+  loading.value = true;
+  try {
+    const tools = await dataService.getTools();
+    // 根据当前分类筛选工具
+    if (typeId.value === 8) {
+      // 我的收藏
+      toolList.value = localStorage.getItem("risev_open_tool_list_collected")
+        ? JSON.parse(localStorage.getItem("risev_open_tool_list_collected"))
+        : [];
+    } else {
+      // 其他分类
+      const currentCategory = typeList.value.find(t => t.weight === typeId.value)?.name;
+      console.log('当前分类:', currentCategory);
+      if (!currentCategory) {
+        console.error('未找到对应分类');
+        toolList.value = [];
+        return;
+      }
+      toolList.value = tools.filter(tool => tool.category === currentCategory);
+    }
+    console.log('过滤后的工具列表:', toolList.value);
+    
+    // 更新收藏状态
+    if (localStorage.getItem("risev_open_tool_list_collected")) {
+      let collectedList = JSON.parse(
+        localStorage.getItem("risev_open_tool_list_collected")
+      );
+      toolList.value.forEach((item) => {
+        item.collected = collectedList.some((i) => i.name === item.name);
+      });
+    }
+  } catch (error) {
+    console.error('获取工具列表失败:', error);
+    ElMessage.error('获取工具列表失败');
+  } finally {
+    loading.value = false;
+  }
+};
+
+// 切换分类
+const goType = async (item) => {
+  console.log('切换分类:', item);
+  
+  // 如果正在加载中，不进行切换
+  if (loading.value) {
+    console.log('数据加载中，暂不切换分类');
+    return;
+  }
+  
+  // 检查参数有效性
+  if (!item) {
+    console.error('分类项为空');
+    return;
+  }
+  
+  // 检查weight是否存在且有效
+  if (item.weight === undefined || item.weight === null) {
+    console.error('无效的weight值:', item);
+    return;
+  }
+
+  const weight = Number(item.weight);
+  if (isNaN(weight)) {
+    console.error('weight不是有效的数字:', item.weight);
+    return;
+  }
+  
+  try {
+    typeId.value = weight;
+    await getToolList();
+    localStorage.setItem("risev_open_type_id", typeId.value);
+  } catch (error) {
+    console.error('切换分类失败:', error);
+    ElMessage.error('切换分类失败，请重试');
+  }
+};
+
+// 监听 typeId 变化
+watch(typeId, (newId) => {
+  console.log('typeId changed:', newId);
+});
+
+// 搜索
+const search = () => {
+  if (!keyword.value) {
+    getToolList();
+    return;
+  }
+  const searchKey = keyword.value.toLowerCase();
+  toolList.value = toolList.value.filter((item) =>
+    item.shorthand.toLowerCase().includes(searchKey)
+  );
+};
 
 const getToolCollected = (collected) => {
   return collected
@@ -127,65 +267,25 @@ const clickCollected = (item) => {
 }
 
 const openUrl = (item) => {
-  window.open(item.target);
-}
-
-const search = () => {
-  if (keyword.value) {
-    toolList.value = sourceToolList.filter((item) => {
-      const searchTerm = keyword.value.toLowerCase();
-      return (
-        (item.name?.toLowerCase() || '').includes(searchTerm) ||
-        (item.desc?.toLowerCase() || '').includes(searchTerm) ||
-        (item.jp?.toLowerCase() || '').includes(searchTerm)
-      );
-    });
-  } else {
-    goType({ id: typeId.value });
-  }
-}
-
-const goType = (item) => {
-  typeId.value = item.id;
-  keyword.value = "";
-  if (item.id == 8) {
-    toolList.value = localStorage.getItem("risev_open_tool_list_collected")
-      ? JSON.parse(localStorage.getItem("risev_open_tool_list_collected"))
-      : [];
-    return;
-  }
-  toolList.value = sourceToolList.filter((i) => i.menuId.includes(item.id));
-  //遍历收藏列表，更新当前toolList的收藏状态
-  if (localStorage.getItem("risev_open_tool_list_collected")) {
-    let collectedList = JSON.parse(
-      localStorage.getItem("risev_open_tool_list_collected")
-    );
-    toolList.value.forEach((item) => {
-      item.collected = collectedList.find((i) => i.name == item.name)
-        ? true
-        : false;
-    });
-  }
-  //存储当前typeId
-  localStorage.setItem("risev_open_type_id", typeId.value);
+  window.open(item.url);
 }
 
 // 获取分类logo
-const getCategoryLogo = (categoryId) => {
-  // 获取该分类下的第一个工具
-  const firstTool = sourceToolList.find(tool => tool.menuId.includes(categoryId))
+const getCategoryLogo = (categoryName) => {
+  // 从缓存的所有工具中查找
+  const firstTool = allTools.value.find(tool => tool.category === categoryName);
   if (firstTool) {
     // 如果找到工具,返回其logo
-    return toolLogos.value[firstTool.target] || require('@/assets/images/default.svg')
+    return toolLogos.value[firstTool.url] || require('@/assets/images/default.svg');
   }
   // 如果分类为空,返回默认logo
-  return require('@/assets/images/default.svg')
+  return require('@/assets/images/default.svg');
 }
 
 // 修改分类图标样式方法
 const getMaskImageStyle = (item) => {
   return {
-    backgroundImage: `url(${getCategoryLogo(item.id)})`,
+    backgroundImage: `url(${getCategoryLogo(item.name)})`,
     maskImage: 'none',
     WebkitMaskImage: 'none',
     backgroundSize: 'contain',
@@ -231,63 +331,133 @@ const dropTools = (event, index) => {
 
 const loadToolLogo = async (tool) => {
   // 如果已经在加载中,直接返回
-  if (loadingLogos.value[tool.target]) return
+  if (loadingLogos.value[tool.url]) return
   
   try {
     // 先从缓存获取
-    const cached = getCachedLogo(tool.target)
+    const cached = getCachedLogo(tool.url)
     if (cached) {
-      toolLogos.value[tool.target] = cached
+      toolLogos.value[tool.url] = cached
       return
     }
     
     // 标记为加载中
-    loadingLogos.value[tool.target] = true
+    loadingLogos.value[tool.url] = true
     
     // 获取logo
-    const logo = await getWebsiteLogo(tool.target)
+    const logo = await getWebsiteLogo(tool.url)
     
     // 缓存logo
-    cacheLogo(tool.target, logo)
+    cacheLogo(tool.url, logo)
     
     // 更新显示
-    toolLogos.value[tool.target] = logo
+    toolLogos.value[tool.url] = logo
   } catch (error) {
     console.error('加载工具logo失败:', error)
     // 使用默认图标
-    toolLogos.value[tool.target] = require('@/assets/images/default.svg')
+    toolLogos.value[tool.url] = require('@/assets/images/default.svg')
   } finally {
     // 清除加载中标记
-    loadingLogos.value[tool.target] = false
+    loadingLogos.value[tool.url] = false
   }
 }
 
-// 监听工具列表变化
-watch(toolList, (newList) => {
+// 监听所有工具列表变化
+watch(allTools, (newList) => {
   if(newList && newList.length > 0) {
     newList.forEach(tool => {
-      loadToolLogo(tool)
-    })
+      loadToolLogo(tool);
+    });
   }
-}, { immediate: true })
+}, { immediate: true });
 
-onMounted(() => {
+onMounted(async () => {
   // 清理过期和旧版本缓存
-  cleanCache()
+  cleanCache();
   
-  //获取本地存储的typeId
-  const localTypeId = localStorage.getItem("risev_open_type_id");
-  if (localTypeId) {
-    goType({ id: Number(localTypeId) });
-  } else {
-    goType({ id: 1 });
+  try {
+    loading.value = true;
+    
+    // 获取所有工具
+    await getAllTools();
+    
+    // 获取分类列表
+    await getTypeList();
+    
+    if (typeList.value.length === 0) {
+      ElMessage.warning('暂无分类数据');
+      return;
+    }
+
+    console.log('初始化时的分类列表:', typeList.value.map(t => ({
+      name: t.name,
+      weight: t.weight,
+      weightType: typeof t.weight,
+      weightValue: Number(t.weight),
+      isValidNumber: !isNaN(Number(t.weight))
+    })));
+
+    // 获取本地存储的typeId
+    const localTypeId = localStorage.getItem("risev_open_type_id");
+    let targetWeight;
+    
+    if (localTypeId) {
+      const localIdNumber = Number(localTypeId);
+      console.log('本地存储的typeId:', localIdNumber);
+      
+      // 检查本地存储的typeId是否有效
+      const matchingCategory = typeList.value.find(t => {
+        const weight = Number(t.weight);
+        const isMatch = !isNaN(weight) && weight === localIdNumber;
+        console.log('检查分类:', t.name, 'weight:', weight, 'isMatch:', isMatch);
+        return isMatch;
+      });
+      
+      if (matchingCategory) {
+        targetWeight = Number(matchingCategory.weight);
+        console.log('使用本地存储的分类:', matchingCategory.name, targetWeight);
+      }
+    }
+    
+    // 如果本地存储无效，使用第一个有效的分类
+    if (targetWeight === undefined) {
+      // 查找第一个有效的weight值
+      const validCategory = typeList.value.find(t => {
+        const weight = Number(t.weight);
+        const isValid = !isNaN(weight);
+        console.log('检查分类weight有效性:', t.name, 'weight:', weight, 'isValid:', isValid);
+        return isValid;
+      });
+      
+      if (validCategory) {
+        targetWeight = Number(validCategory.weight);
+        console.log('使用有效的分类:', validCategory.name, targetWeight);
+      } else {
+        console.error('未找到有效的weight值, typeList:', typeList.value.map(t => ({
+          name: t.name,
+          weight: t.weight,
+          weightType: typeof t.weight,
+          weightString: String(t.weight),
+          weightNumber: Number(t.weight)
+        })));
+      }
+    }
+    
+    // 确保获取到有效的weight值
+    if (typeof targetWeight === 'number' && !isNaN(targetWeight)) {
+      await goType({ weight: targetWeight });
+    } else {
+      console.error('无法获取有效的分类weight, targetWeight:', targetWeight);
+      ElMessage.error('加载分类失败，请检查分类配置');
+    }
+    
+  } catch (error) {
+    console.error('初始化失败:', error);
+    ElMessage.error('加载数据失败，请刷新页面重试');
+  } finally {
+    loading.value = false;
   }
-  //获取本地存储的菜单列表
-  const localMenuList = localStorage.getItem('risev_menu_list');
-  if (localMenuList) {
-    typeList.value = JSON.parse(localMenuList);
-  }
-})
+});
 </script>
 
 <style lang="less" scoped>
@@ -312,6 +482,7 @@ onMounted(() => {
       align-items: center;
       position: relative;
       border-bottom: 1px solid #ededed;
+      transition: all 0.3s ease;
     }
 
     .type:first-child {
@@ -323,7 +494,7 @@ onMounted(() => {
     }
 
     .active {
-      transition: 0.3s;
+      transition: all 0.3s ease;
       border-radius: 8px;
       color: #fff !important;
       background-color: #817dff;
