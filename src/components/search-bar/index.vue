@@ -75,13 +75,15 @@ const changeSearchType = (index) => {
 };
 
 const search = () => {
-  if (keyword.value) {
-    window.open(
-      searchType[searchTypeIndex.value].value + keyword.value,
-      "blank"
-    );
-  }
-};
+  if (!keyword.value) return;
+  const urls = {
+    'Bing': `https://cn.bing.com/search?q=${keyword.value}`,
+    'Google': `https://www.google.com/search?q=${keyword.value}`,
+    'Baidu': `https://www.baidu.com/s?wd=${keyword.value}`
+  };
+  openUrl(urls[searchEngine.value]);
+}
+
 function handleFocus() {
   isInputActive.value = true;
 }
@@ -126,6 +128,35 @@ function handleChange() {
 // 处理 blur 事件
 function handleBlur() {
   isInputActive.value = false;
+}
+
+const getSuggestion = async () => {
+  if (!keyword.value) return;
+  const data = await getBingSuggestion(keyword.value);
+  if (data && data.s) {
+    suggestionList.value = data.s;
+  }
+}
+
+const openUrl = (url) => {
+  window.open(url);
+}
+
+const getBingSuggestion = async (keyword) => {
+  try {
+    const response = await fetch(
+      `https://api.bing.com/qsonhs.aspx?type=cb&q=${keyword}&cb=window.bing.sug`
+    );
+    const text = await response.text();
+    const json = JSON.parse(text.match(/\{.*\}/)[0]);
+    return json.AS;
+  } catch (error) {
+    ElMessage({
+      message: '获取搜索建议失败',
+      type: 'error'
+    });
+    return null;
+  }
 }
 
 onMounted(() => { });

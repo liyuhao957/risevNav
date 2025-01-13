@@ -102,12 +102,12 @@
           <li class="has-line-data" data-line-start="35" data-line-end="36">
             <strong>官方网站</strong>：<a href="https://nav.risev.cn/"
               >https://nav.risev.cn/</a
-            > —— 访问我们的网站，了解产品信息。
+            > —— 访问我们的网站，了解产品信息。
           </li>
           <li class="has-line-data" data-line-start="36" data-line-end="37">
             <strong>电子邮箱</strong>：<a
               ><span style="color: blue">info@risev.cn</span></a
-            > —— 发送邮件至我们的官方邮箱，我们将有专人负责回复您的咨询和需求。
+            > —— 发送邮件至我们的官方邮箱，我们将有专人负责回复您的咨询和需求。
           </li>
           <li class="has-line-data" data-line-start="37" data-line-end="39">
             <strong>微信公众号</strong>：RiseV——
@@ -148,52 +148,19 @@ import FastOpen from "@/components/fast-open";
 import { useStore } from "vuex";
 import { onMounted, ref } from "vue";
 //便签组件
-import {
-  StickyNote,
-  store as noteStore,
-} from "@/components/fast-open/note/note.js";
-import $ from "jquery";
+import Bianqian from "@/components/fast-open/note/index.vue";
+
 const dialogVisible = ref(false);
-const store = useStore();
-const stickyNoteInstance = ref(null);
+const showRiseVComponent = ref(false);
 
-//小组件逻辑
 const clickRiseVComponent = () => {
-  //控制class risev-mini-component 隐藏与显示
-  if (
-    !stickyNoteInstance.value ||
-    document.querySelector(".risev-mini-component") == null
-  ) {
-    stickyNoteInstance.value = noteStore.setup().note;
-    //本地存储组件显示状态
-    localStorage.setItem("showRiseVComponent", true);
-  } else {
-    destroyStickyNote();
-    //本地存储组件显示状态
-    localStorage.setItem("showRiseVComponent", false);
-  }
+  showRiseVComponent.value = !showRiseVComponent.value;
 };
-
-const destroyStickyNote = () => {
-  if (stickyNoteInstance.value) {
-    stickyNoteInstance.value.close();
-    stickyNoteInstance.value = null;
-  }
-};
-
-onMounted(() => {
-  console.log(localStorage.getItem("showRiseVComponent"));
-  if (localStorage.getItem("showRiseVComponent") == "true") {
-    stickyNoteInstance.value = noteStore.setup().note;
-  } else {
-    destroyStickyNote();
-  }
-});
 </script>
 
 <style lang="less" scoped>
 .index {
-  width: 100vw;
+  width: 100%;
   height: 100vh;
   overflow: hidden;
   background-repeat: no-repeat;
@@ -270,45 +237,8 @@ onMounted(() => {
   align-items: center;
 }
 
-.send-box {
-  width: 100%;
-  padding: 10px 8px;
-
-  .title {
-    font-weight: bold;
-    font-size: 16px;
-    text-align: center;
-    margin-bottom: 10px;
-    color: black !important;
-    user-select: none;
-  }
-
-  .tip {
-    color: #333 !important;
-  }
-
-  .textarea {
-    margin-top: 14px;
-    width: 100%;
-    height: 260px;
-    border: none;
-    outline: none;
-    resize: none;
-    border: 1px solid rgb(220, 223, 230);
-    padding: 12px;
-    line-height: 1.4;
-    border-radius: 8px;
-
-    &::placeholder {
-      color: #c5c5c5;
-    }
-  }
-}
-
 .header-risev {
-  // background-color: #fff;
   padding-bottom: 14px;
-  // box-shadow: 0px 10px 10px rgb(238 242 245 / 80%);
 }
 
 .gongchuang {
