@@ -28,7 +28,25 @@
         <div class="type-icon">
           <div class="type-icon-item" :style="getMaskImageStyle(item)"></div>
         </div>
-        {{ item.name }}
+        <span class="type-name">{{ item.name }}</span>
+        <div class="type-actions" v-if="item.name !== '我的收藏'">
+          <el-button
+            type="text"
+            size="small"
+            @click.stop="handleEdit(item)"
+            class="action-btn"
+          >
+            <el-icon><Edit /></el-icon>
+          </el-button>
+          <el-button
+            type="text"
+            size="small"
+            @click.stop="handleDelete(item)"
+            class="action-btn"
+          >
+            <el-icon><Delete /></el-icon>
+          </el-button>
+        </div>
       </div>
     </div>
     <div class="tools-container">
@@ -97,8 +115,8 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch } from "vue";
-import { Search } from "@element-plus/icons-vue";
+import { onMounted, ref, watch, inject } from "vue";
+import { Search, Edit, Delete } from "@element-plus/icons-vue";
 import { ElMessage } from 'element-plus'
 import dataService from '@/services/data'
 import { getWebsiteLogo } from '@/utils/logo'
@@ -113,6 +131,18 @@ const loadingLogos = ref({});
 const loading = ref(false);
 const allTools = ref([]);
 const categories = ref([]);
+
+// 注入父组件方法
+const { handleEditCategory, handleDeleteCategory } = inject('categoryActions')
+
+// 添加编辑和删除处理方法
+const handleEdit = (category) => {
+  handleEditCategory(category)
+}
+
+const handleDelete = (category) => {
+  handleDeleteCategory(category)
+}
 
 // 获取所有工具并缓存
 const getAllTools = async () => {
@@ -155,6 +185,43 @@ const getTypeList = async () => {
     loading.value = false;
   }
 };
+
+// 修改工具列表过滤逻辑
+const filterToolsByCategory = (tools, category) => {
+  if (!category) return [];
+  
+  return tools.filter(tool => {
+    const isMatch = tool.category === category.name;
+    console.log(`工具 ${tool.name} 的分类匹配结果:`, {
+      toolCategory: tool.category,
+      categoryName: category.name,
+      isMatch
+    });
+    return isMatch;
+  });
+};
+
+// 修改监听逻辑，避免无限循环
+watch([typeId], async () => {
+  if (!typeId.value) return;
+  
+  const category = typeList.value.find(c => c.weight === typeId.value);
+  console.log('当前分类信息:', {
+    typeId: typeId.value,
+    categoryName: category?.name,
+    toolsCount: allTools.value.length
+  });
+  
+  if (!category) {
+    console.log('未找到对应分类, typeId:', typeId.value);
+    toolList.value = [];
+    return;
+  }
+  
+  // 根据分类筛选工具
+  toolList.value = filterToolsByCategory(allTools.value, category);
+  console.log('最终的工具列表:', toolList.value);
+});
 
 // 获取工具列表
 const getToolList = async () => {
@@ -255,11 +322,6 @@ const goType = async (item) => {
     ElMessage.error('切换分类失败，请重试');
   }
 };
-
-// 监听 typeId 变化
-watch(typeId, (newId) => {
-  console.log('typeId changed:', newId);
-});
 
 // 搜索
 const search = () => {
@@ -403,6 +465,36 @@ watch(allTools, (newList) => {
   }
 }, { immediate: true });
 
+// 添加刷新数据的方法
+const refreshData = async () => {
+  try {
+    // 重新获取最新的分类数据
+    const [newCategories, newTools] = await Promise.all([
+      dataService.getCategories(),
+      dataService.getTools()
+    ]);
+    
+    typeList.value = newCategories;
+    allTools.value = newTools;
+    
+    // 重新筛选当前分类的工具
+    if (typeId.value) {
+      const category = typeList.value.find(c => c.weight === typeId.value);
+      if (category) {
+        toolList.value = filterToolsByCategory(newTools, category);
+      }
+    }
+  } catch (error) {
+    console.error('刷新数据失败:', error);
+    ElMessage.error('刷新数据失败');
+  }
+}
+
+// 在编辑或删除成功后调用刷新
+const handleSuccess = () => {
+  refreshData();
+}
+
 onMounted(async () => {
   // 清理过期和旧版本缓存
   cleanCache();
@@ -456,6 +548,42 @@ onMounted(async () => {
       position: relative;
       border-bottom: 1px solid #ededed;
       transition: all 0.3s ease;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      
+      .type-name {
+        flex: 1;
+        margin: 0 10px;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+      
+      .type-actions {
+        display: none;
+        margin-left: auto;
+        
+        .action-btn {
+          padding: 2px 5px;
+          color: #606266;
+          
+          &:hover {
+            color: #409EFF;
+          }
+          
+          &:last-child:hover {
+            color: #F56C6C;
+          }
+        }
+      }
+      
+      &:hover {
+        .type-actions {
+          display: flex;
+          align-items: center;
+        }
+      }
     }
 
     .type:first-child {
@@ -651,5 +779,18 @@ onMounted(async () => {
   width: 40px;
   height: 40px;
   object-fit: contain;
+}
+
+.active {
+  .type-actions {
+    .action-btn {
+      color: #fff;
+      
+      &:hover {
+        color: #fff;
+        opacity: 0.8;
+      }
+    }
+  }
 }
 </style>

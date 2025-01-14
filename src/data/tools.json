@@ -36,13 +36,8 @@
       "is_active": true
     },
     {
-      "name": "诗",
-      "weight": 8,
-      "is_active": true
-    },
-    {
-      "name": "哦",
-      "weight": 9,
+      "name": "分完完",
+      "weight": 12,
       "is_active": true
     }
   ],
@@ -127,6 +122,18 @@
       "url": "www.baidu.com",
       "shorthand": "我企鹅",
       "category": "哦"
+    },
+    {
+      "name": "委屈",
+      "url": "委屈",
+      "shorthand": "www.baidu.com",
+      "category": "分完完"
+    },
+    {
+      "name": "完",
+      "url": "www.baidu.com",
+      "shorthand": "我企鹅",
+      "category": "分完完"
     }
   ]
 }

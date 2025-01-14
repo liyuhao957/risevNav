@@ -157,8 +157,13 @@
     <tool-manager @success="handleSuccess" @cancel="toolDialogVisible = false" />
   </el-dialog>
 
-  <el-dialog v-model="categoryDialogVisible" title="添加分类">
-    <category-manager @success="handleSuccess" @cancel="categoryDialogVisible = false" />
+  <el-dialog v-model="categoryDialogVisible" :title="categoryDialogTitle">
+    <category-manager 
+      @success="handleSuccess" 
+      @cancel="categoryDialogVisible = false"
+      :is-edit="isEditCategory"
+      :category-data="currentCategory"
+    />
   </el-dialog>
 </template>
 
@@ -168,17 +173,22 @@ import SearchBar from "@/components/search-bar";
 import ToolsList from "@/components/tools-list";
 import FastOpen from "@/components/fast-open";
 import { useStore } from "vuex";
-import { onMounted, ref } from "vue";
+import { onMounted, ref, computed, provide } from "vue";
 //便签组件
 import Bianqian from "@/components/fast-open/note/index.vue";
 import { Plus } from '@element-plus/icons-vue'
 import ToolManager from '@/components/tool-manager/index.vue'
 import CategoryManager from '@/components/category-manager/index.vue'
+import { ElMessageBox, ElMessage } from 'element-plus'
+import dataService from '@/services/data'
 
 const dialogVisible = ref(false);
 const showRiseVComponent = ref(false);
 const toolDialogVisible = ref(false)
 const categoryDialogVisible = ref(false)
+const isEditCategory = ref(false)
+const currentCategory = ref(null)
+const categoryDialogTitle = computed(() => isEditCategory.value ? '编辑分类' : '添加分类')
 
 const clickRiseVComponent = () => {
   showRiseVComponent.value = !showRiseVComponent.value;
@@ -190,8 +200,37 @@ const handleCommand = (command) => {
       toolDialogVisible.value = true
       break
     case 'addCategory':
+      isEditCategory.value = false
+      currentCategory.value = null
       categoryDialogVisible.value = true
       break
+  }
+}
+
+const handleEditCategory = (category) => {
+  currentCategory.value = { ...category }
+  isEditCategory.value = true
+  categoryDialogVisible.value = true
+}
+
+const handleDeleteCategory = async (category) => {
+  try {
+    await ElMessageBox.confirm('确定要删除该分类吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    })
+    
+    await dataService.deleteCategory(category.weight)
+    ElMessage.success('删除成功')
+    
+    // 删除成功后重新加载页面，此时会使用默认分类
+    window.location.reload()
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除分类失败:', error)
+      ElMessage.error(error.message || '删除失败')
+    }
   }
 }
 
@@ -201,6 +240,12 @@ const handleSuccess = () => {
   // 刷新数据
   window.location.reload()
 }
+
+// 提供方法给子组件
+provide('categoryActions', {
+  handleEditCategory,
+  handleDeleteCategory
+})
 </script>
 
 <style lang="less" scoped>
