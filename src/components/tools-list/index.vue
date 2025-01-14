@@ -1,5 +1,16 @@
 <template>
   <div class="tools-list">
+    <div class="tools-category">
+      <div
+        v-for="category in categories"
+        :key="category.name"
+        class="category-item"
+        :class="{ active: currentCategory === category.name }"
+        @click="switchCategory(category.name)"
+      >
+        {{ category.name }}
+      </div>
+    </div>
     <div class="type-container" v-draggable="typeList" @end="saveOrder">
       <div
         :class="{
@@ -101,6 +112,7 @@ const toolLogos = ref({});
 const loadingLogos = ref({});
 const loading = ref(false);
 const allTools = ref([]);
+const categories = ref([]);
 
 // 获取所有工具并缓存
 const getAllTools = async () => {
@@ -150,24 +162,42 @@ const getToolList = async () => {
   loading.value = true;
   try {
     const tools = await dataService.getTools();
+    console.log('所有工具:', tools);
+    console.log('所有分类:', typeList.value);
+    
     // 根据当前分类筛选工具
-    if (typeId.value === 8) {
-      // 我的收藏
+    const currentCategory = typeList.value.find(t => t.weight === typeId.value);
+    console.log('当前分类信息:', {
+      typeId: typeId.value,
+      category: currentCategory,
+      allCategories: typeList.value.map(c => ({ name: c.name, weight: c.weight }))
+    });
+    
+    if (!currentCategory) {
+      console.error('未找到对应分类, typeId:', typeId.value);
+      toolList.value = [];
+      return;
+    }
+
+    // 如果是收藏分类，使用本地存储的收藏列表
+    if (currentCategory.name === '我的收藏') {
       toolList.value = localStorage.getItem("risev_open_tool_list_collected")
         ? JSON.parse(localStorage.getItem("risev_open_tool_list_collected"))
         : [];
+      console.log('收藏的工具:', toolList.value);
     } else {
-      // 其他分类
-      const currentCategory = typeList.value.find(t => t.weight === typeId.value)?.name;
-      console.log('当前分类:', currentCategory);
-      if (!currentCategory) {
-        console.error('未找到对应分类');
-        toolList.value = [];
-        return;
-      }
-      toolList.value = tools.filter(tool => tool.category === currentCategory);
+      // 其他分类按名称筛选
+      toolList.value = tools.filter(tool => {
+        const isMatch = tool.category === currentCategory.name;
+        console.log(`工具 ${tool.name} 的分类匹配结果:`, {
+          toolCategory: tool.category,
+          currentCategory: currentCategory.name,
+          isMatch,
+          tool
+        });
+        return isMatch;
+      });
     }
-    console.log('过滤后的工具列表:', toolList.value);
     
     // 更新收藏状态
     if (localStorage.getItem("risev_open_tool_list_collected")) {
@@ -178,6 +208,8 @@ const getToolList = async () => {
         item.collected = collectedList.some((i) => i.name === item.name);
       });
     }
+    
+    console.log('最终的工具列表:', toolList.value);
   } catch (error) {
     console.error('获取工具列表失败:', error);
     ElMessage.error('获取工具列表失败');
@@ -377,80 +409,21 @@ onMounted(async () => {
   
   try {
     loading.value = true;
+    await Promise.all([
+      getAllTools(),
+      getTypeList()
+    ]);
     
-    // 获取所有工具
-    await getAllTools();
-    
-    // 获取分类列表
-    await getTypeList();
-    
-    if (typeList.value.length === 0) {
-      ElMessage.warning('暂无分类数据');
-      return;
-    }
-
-    console.log('初始化时的分类列表:', typeList.value.map(t => ({
-      name: t.name,
-      weight: t.weight,
-      weightType: typeof t.weight,
-      weightValue: Number(t.weight),
-      isValidNumber: !isNaN(Number(t.weight))
-    })));
-
     // 获取本地存储的typeId
     const localTypeId = localStorage.getItem("risev_open_type_id");
-    let targetWeight;
-    
     if (localTypeId) {
-      const localIdNumber = Number(localTypeId);
-      console.log('本地存储的typeId:', localIdNumber);
-      
-      // 检查本地存储的typeId是否有效
-      const matchingCategory = typeList.value.find(t => {
-        const weight = Number(t.weight);
-        const isMatch = !isNaN(weight) && weight === localIdNumber;
-        console.log('检查分类:', t.name, 'weight:', weight, 'isMatch:', isMatch);
-        return isMatch;
-      });
-      
-      if (matchingCategory) {
-        targetWeight = Number(matchingCategory.weight);
-        console.log('使用本地存储的分类:', matchingCategory.name, targetWeight);
-      }
-    }
-    
-    // 如果本地存储无效，使用第一个有效的分类
-    if (targetWeight === undefined) {
-      // 查找第一个有效的weight值
-      const validCategory = typeList.value.find(t => {
-        const weight = Number(t.weight);
-        const isValid = !isNaN(weight);
-        console.log('检查分类weight有效性:', t.name, 'weight:', weight, 'isValid:', isValid);
-        return isValid;
-      });
-      
-      if (validCategory) {
-        targetWeight = Number(validCategory.weight);
-        console.log('使用有效的分类:', validCategory.name, targetWeight);
-      } else {
-        console.error('未找到有效的weight值, typeList:', typeList.value.map(t => ({
-          name: t.name,
-          weight: t.weight,
-          weightType: typeof t.weight,
-          weightString: String(t.weight),
-          weightNumber: Number(t.weight)
-        })));
-      }
-    }
-    
-    // 确保获取到有效的weight值
-    if (typeof targetWeight === 'number' && !isNaN(targetWeight)) {
-      await goType({ weight: targetWeight });
+      typeId.value = Number(localTypeId);
     } else {
-      console.error('无法获取有效的分类weight, targetWeight:', targetWeight);
-      ElMessage.error('加载分类失败，请检查分类配置');
+      // 默认选中第一个分类
+      typeId.value = typeList.value[0]?.weight || 1;
     }
     
+    await getToolList();
   } catch (error) {
     console.error('初始化失败:', error);
     ElMessage.error('加载数据失败，请刷新页面重试');

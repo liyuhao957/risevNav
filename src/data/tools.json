@@ -34,6 +34,16 @@
       "name": "RiseV专属",
       "weight": 7,
       "is_active": true
+    },
+    {
+      "name": "诗",
+      "weight": 8,
+      "is_active": true
+    },
+    {
+      "name": "哦",
+      "weight": 9,
+      "is_active": true
     }
   ],
   "tools": [
@@ -41,19 +51,82 @@
       "name": "百度",
       "shorthand": "baidu search",
       "url": "https://www.baidu.com",
-      "category": "精品整理"
+      "category": "精品整理",
+      "focusOn": false
     },
     {
       "name": "Kimi AI",
       "shorthand": "kimi ai chat",
       "url": "https://kimi.moonshot.cn",
-      "category": "精品整理"
+      "category": "精品整理",
+      "focusOn": false
     },
     {
       "name": "Claude",
       "shorthand": "claude ai chat",
       "url": "https://claude.ai",
       "category": "编程助手"
+    },
+    {
+      "name": "完",
+      "url": "www.baidu.com",
+      "shorthand": "e",
+      "category": "精品整理",
+      "focusOn": false
+    },
+    {
+      "name": "额",
+      "url": "www.baidu.com",
+      "shorthand": "我企鹅",
+      "category": "诗"
+    },
+    {
+      "name": "额委屈",
+      "url": "我企鹅",
+      "shorthand": "www.baidu.com",
+      "category": "诗"
+    },
+    {
+      "name": "嗷嗷",
+      "url": "www.baidu.com",
+      "shorthand": "萨达",
+      "category": "诗"
+    },
+    {
+      "name": "宝宝",
+      "url": "www.baidu.com",
+      "shorthand": "完",
+      "category": "精品整理"
+    },
+    {
+      "name": "额",
+      "url": "额",
+      "shorthand": "完",
+      "category": "诗"
+    },
+    {
+      "name": "鱼",
+      "url": "鱼",
+      "shorthand": "www.baidu.com",
+      "category": "诗"
+    },
+    {
+      "name": "我企鹅委屈请问",
+      "url": "呜呜萨达",
+      "shorthand": "我企鹅",
+      "category": "文件处理"
+    },
+    {
+      "name": "委屈",
+      "url": "www.baidu.com",
+      "shorthand": "委屈额",
+      "category": "哦"
+    },
+    {
+      "name": "我期待啊",
+      "url": "www.baidu.com",
+      "shorthand": "我企鹅",
+      "category": "哦"
     }
   ]
-} 
+}

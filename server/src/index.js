@@ -1,11 +1,14 @@
 const express = require('express')
 const axios = require('axios')
 const cheerio = require('cheerio')
-const NodeCache = require('node-cache')
 const cors = require('cors')
+const fs = require('fs')
+const path = require('path')
 
 const app = express()
-const cache = new NodeCache({ stdTTL: 86400 }) // 缓存24小时
+
+// 添加 JSON 解析中间件
+app.use(express.json())
 
 // 允许跨域访问
 app.use(cors())
@@ -18,8 +21,6 @@ app.use((req, res, next) => {
 
 /**
  * 获取网站favicon
- * 1. 尝试解析HTML中的link标签
- * 2. 尝试常见的favicon路径
  */
 app.get('/api/favicon', async (req, res) => {
   try {
@@ -30,15 +31,6 @@ app.get('/api/favicon', async (req, res) => {
     }
 
     console.log('[Favicon] 处理请求:', url)
-
-    // 检查缓存
-    const cacheKey = `favicon:${url}`
-    const cachedFavicon = cache.get(cacheKey)
-    if (cachedFavicon) {
-      console.log(`[Favicon] 命中缓存: ${url}`)
-      res.set('Content-Type', cachedFavicon.contentType)
-      return res.send(cachedFavicon.data)
-    }
 
     // 规范化URL
     const normalizedUrl = url.startsWith('http') ? url : `https://${url}`
@@ -51,7 +43,7 @@ app.get('/api/favicon', async (req, res) => {
       const response = await axios.get(normalizedUrl, {
         timeout: 5000,
         headers: {
-          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+          'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36'
         }
       })
       console.log('[Favicon] HTML获取成功')
@@ -74,18 +66,13 @@ app.get('/api/favicon', async (req, res) => {
               responseType: 'arraybuffer',
               timeout: 5000
             })
-            const favicon = {
-              data: faviconResponse.data,
-              contentType: faviconResponse.headers['content-type']
-            }
             console.log('[Favicon] 成功获取link标签favicon:', {
               url: faviconUrl,
-              contentType: favicon.contentType,
-              size: favicon.data.length
+              contentType: faviconResponse.headers['content-type'],
+              size: faviconResponse.data.length
             })
-            cache.set(cacheKey, favicon)
-            res.set('Content-Type', favicon.contentType)
-            return res.send(favicon.data)
+            res.set('Content-Type', faviconResponse.headers['content-type'])
+            return res.send(faviconResponse.data)
           } catch (error) {
             console.warn('[Favicon] link标签获取失败:', {
               url: faviconUrl,
@@ -120,18 +107,13 @@ app.get('/api/favicon', async (req, res) => {
           responseType: 'arraybuffer',
           timeout: 5000
         })
-        const favicon = {
-          data: response.data,
-          contentType: response.headers['content-type']
-        }
         console.log('[Favicon] 成功获取路径favicon:', {
           url: faviconUrl,
-          contentType: favicon.contentType,
-          size: favicon.data.length
+          contentType: response.headers['content-type'],
+          size: response.data.length
         })
-        cache.set(cacheKey, favicon)
-        res.set('Content-Type', favicon.contentType)
-        return res.send(favicon.data)
+        res.set('Content-Type', response.headers['content-type'])
+        return res.send(response.data)
       } catch (error) {
         console.warn('[Favicon] 路径获取失败:', {
           url: faviconUrl,
@@ -151,6 +133,52 @@ app.get('/api/favicon', async (req, res) => {
       error: error.message
     })
     res.status(500).json({ error: '服务器内部错误' })
+  }
+})
+
+// 数据文件路径
+const DATA_FILE = path.join(__dirname, '../../src/data/tools.json')
+
+// 读取数据
+app.get('/api/data', (req, res) => {
+  try {
+    const data = fs.readFileSync(DATA_FILE, 'utf8')
+    res.json(JSON.parse(data))
+  } catch (error) {
+    console.error('读取数据失败:', error)
+    res.status(500).json({ error: '读取数据失败' })
+  }
+})
+
+// 保存数据
+app.post('/api/data', (req, res) => {
+  try {
+    const data = req.body
+    if (!data) {
+      return res.status(400).json({ error: '数据不能为空' })
+    }
+
+    // 验证数据结构
+    if (!data.categories && !data.tools) {
+      return res.status(400).json({ error: '无效的数据格式' })
+    }
+
+    // 读取现有数据
+    const currentData = JSON.parse(fs.readFileSync(DATA_FILE, 'utf8'))
+    
+    // 合并数据
+    const newData = {
+      categories: data.categories || currentData.categories,
+      tools: data.tools || currentData.tools
+    }
+
+    // 写入文件
+    fs.writeFileSync(DATA_FILE, JSON.stringify(newData, null, 2))
+    
+    res.json({ success: true })
+  } catch (error) {
+    console.error('保存数据失败:', error)
+    res.status(500).json({ error: '保存数据失败' })
   }
 })
 

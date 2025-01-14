@@ -138,6 +138,28 @@
       </div>
     </template>
   </el-dialog>
+
+  <div class="admin-menu">
+    <el-dropdown trigger="click" @command="handleCommand">
+      <el-button type="primary" circle class="admin-btn">
+        <el-icon><Plus /></el-icon>
+      </el-button>
+      <template #dropdown>
+        <el-dropdown-menu>
+          <el-dropdown-item command="addTool">添加工具</el-dropdown-item>
+          <el-dropdown-item command="addCategory">添加分类</el-dropdown-item>
+        </el-dropdown-menu>
+      </template>
+    </el-dropdown>
+  </div>
+
+  <el-dialog v-model="toolDialogVisible" title="添加工具">
+    <tool-manager @success="handleSuccess" @cancel="toolDialogVisible = false" />
+  </el-dialog>
+
+  <el-dialog v-model="categoryDialogVisible" title="添加分类">
+    <category-manager @success="handleSuccess" @cancel="categoryDialogVisible = false" />
+  </el-dialog>
 </template>
 
 <script setup>
@@ -149,13 +171,36 @@ import { useStore } from "vuex";
 import { onMounted, ref } from "vue";
 //便签组件
 import Bianqian from "@/components/fast-open/note/index.vue";
+import { Plus } from '@element-plus/icons-vue'
+import ToolManager from '@/components/tool-manager/index.vue'
+import CategoryManager from '@/components/category-manager/index.vue'
 
 const dialogVisible = ref(false);
 const showRiseVComponent = ref(false);
+const toolDialogVisible = ref(false)
+const categoryDialogVisible = ref(false)
 
 const clickRiseVComponent = () => {
   showRiseVComponent.value = !showRiseVComponent.value;
 };
+
+const handleCommand = (command) => {
+  switch (command) {
+    case 'addTool':
+      toolDialogVisible.value = true
+      break
+    case 'addCategory':
+      categoryDialogVisible.value = true
+      break
+  }
+}
+
+const handleSuccess = () => {
+  toolDialogVisible.value = false
+  categoryDialogVisible.value = false
+  // 刷新数据
+  window.location.reload()
+}
 </script>
 
 <style lang="less" scoped>
@@ -245,6 +290,22 @@ const clickRiseVComponent = () => {
   width: 100%;
   height: auto;
   overflow-y: auto;
+}
+
+.admin-menu {
+  position: fixed;
+  right: 30px;
+  bottom: 80px;
+  z-index: 999;
+}
+
+.admin-btn {
+  width: 40px;
+  height: 40px;
+  padding: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 </style>
 <style lang="less">
