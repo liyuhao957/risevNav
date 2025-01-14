@@ -1,0 +1,59 @@
+{
+  "categories": [
+    {
+      "name": "精品整理",
+      "weight": 1,
+      "is_active": true
+    },
+    {
+      "name": "文件处理",
+      "weight": 2,
+      "is_active": true
+    },
+    {
+      "name": "图像处理",
+      "weight": 3,
+      "is_active": true
+    },
+    {
+      "name": "设计制作",
+      "weight": 4,
+      "is_active": true
+    },
+    {
+      "name": "编程助手",
+      "weight": 5,
+      "is_active": true
+    },
+    {
+      "name": "效率工具",
+      "weight": 6,
+      "is_active": true
+    },
+    {
+      "name": "RiseV专属",
+      "weight": 7,
+      "is_active": true
+    }
+  ],
+  "tools": [
+    {
+      "name": "百度",
+      "shorthand": "baidu search",
+      "url": "https://www.baidu.com",
+      "category": "精品整理"
+    },
+    {
+      "name": "Kimi AI",
+      "shorthand": "kimi ai chat",
+      "url": "https://kimi.moonshot.cn",
+      "category": "精品整理"
+    },
+    {
+      "name": "Claude",
+      "shorthand": "claude ai chat",
+      "url": "https://claude.ai",
+      "category": "编程助手"
+    }
+  ]
+} 

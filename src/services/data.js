@@ -1,5 +1,4 @@
-import feishuApi from '@/utils/feishu'
-import { ElMessage } from 'element-plus'
+import toolsData from '@/data/tools.json'
 
 class DataService {
   constructor() {
@@ -19,46 +18,14 @@ class DataService {
     }
 
     try {
-      console.log('从飞书获取分类数据');
-      const response = await feishuApi.getCategories();
+      console.log('从本地获取分类数据');
+      const categories = toolsData.categories;
       
-      if (!response || !response.data || !response.data.items) {
-        console.error('分类数据格式错误:', response);
-        throw new Error('分类数据格式错误');
+      if (!categories || categories.length === 0) {
+        console.error('分类数据为空');
+        throw new Error('分类数据为空');
       }
 
-      console.log('原始分类数据:', response.data.items);
-
-      // 处理分类数据
-      const categories = response.data.items.map(item => {
-        const fields = item.fields || {};
-        // 确保weight为数字类型
-        const weight = parseInt(fields.weight, 10);
-        if (isNaN(weight)) {
-          console.error('无效的weight值:', fields.weight, '分类:', fields.name);
-        }
-        
-        return {
-          name: fields.name || '',
-          weight: weight,
-          is_active: fields.is_active || false
-        };
-      }).filter(cat => {
-        // 过滤掉无效的分类
-        const isValid = cat.name && typeof cat.weight === 'number' && !isNaN(cat.weight) && cat.is_active;
-        if (!isValid) {
-          console.log('过滤掉无效分类:', cat);
-        }
-        return isValid;
-      }).sort((a, b) => a.weight - b.weight);
-
-      console.log('处理后的分类数据:', categories);
-      
-      if (categories.length === 0) {
-        console.error('没有有效的分类数据');
-        throw new Error('没有有效的分类数据');
-      }
-      
       // 更新缓存
       this.categoriesCache = categories;
       this.lastCategoriesFetch = now;
@@ -66,9 +33,7 @@ class DataService {
       return categories;
     } catch (error) {
       console.error('获取分类数据失败:', error);
-      // 如果有缓存，使用缓存
       if (this.categoriesCache) {
-        console.log('使用过期的分类缓存');
         return this.categoriesCache;
       }
       throw error;
@@ -84,31 +49,14 @@ class DataService {
     }
 
     try {
-      console.log('从飞书获取工具数据');
-      const response = await feishuApi.getTools();
+      console.log('从本地获取工具数据');
+      const tools = toolsData.tools;
       
-      if (!response || !response.data || !response.data.items) {
-        console.error('工具数据格式错误:', response);
-        throw new Error('工具数据格式错误');
+      if (!tools || tools.length === 0) {
+        console.error('工具数据为空');
+        throw new Error('工具数据为空');
       }
 
-      // 处理工具数据
-      const tools = response.data.items.map(item => ({
-        name: item.fields.name || '',
-        shorthand: item.fields.shorthand || '',
-        url: item.fields.url || '',
-        category: item.fields.category || ''
-      })).filter(tool => {
-        // 过滤掉无效的工具
-        const isValid = tool.name && tool.url && tool.category;
-        if (!isValid) {
-          console.log('过滤掉无效工具:', tool);
-        }
-        return isValid;
-      });
-
-      console.log('处理后的工具数据:', tools);
-      
       // 更新缓存
       this.toolsCache = tools;
       this.lastToolsFetch = now;
@@ -116,9 +64,7 @@ class DataService {
       return tools;
     } catch (error) {
       console.error('获取工具数据失败:', error);
-      // 如果有缓存，使用缓存
       if (this.toolsCache) {
-        console.log('使用过期的工具缓存');
         return this.toolsCache;
       }
       throw error;

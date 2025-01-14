@@ -11,20 +11,5 @@ module.exports = defineConfig({
         '__VUE_PROD_HYDRATION_MISMATCH_DETAILS__': 'false'
       })
     ]
-  },
-  devServer: {
-    proxy: {
-      '/feishu-api': {
-        target: 'https://open.feishu.cn',
-        changeOrigin: true,
-        pathRewrite: {
-          '^/feishu-api': '/open-apis'
-        },
-        onProxyReq: function(proxyReq) {
-          // 设置Origin头
-          proxyReq.setHeader('Origin', 'https://open.feishu.cn');
-        }
-      }
-    }
   }
 }) 
