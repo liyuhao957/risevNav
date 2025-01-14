@@ -65,9 +65,17 @@ const rules = {
   weight: [{ required: true, message: '请输入排序权重', trigger: 'blur' }]
 }
 
-onMounted(() => {
+onMounted(async () => {
   if (props.isEdit && props.categoryData) {
     form.value = { ...props.categoryData }
+  } else {
+    // 新增时自动获取下一个权重值
+    try {
+      form.value.weight = await dataService.getNextWeight()
+    } catch (error) {
+      console.error('获取权重值失败:', error)
+      ElMessage.error('获取权重值失败')
+    }
   }
 })
 
