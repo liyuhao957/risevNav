@@ -6,7 +6,7 @@
       "is_active": true
     },
     {
-      "name": "文件处理",
+      "name": "文件处",
       "weight": 2,
       "is_active": true
     },
@@ -47,6 +47,12 @@
       "url": "www.baidu.com",
       "shorthand": "百度",
       "category": "精品整理"
+    },
+    {
+      "name": "文",
+      "url": "文",
+      "shorthand": "文",
+      "category": "文件处"
     }
   ]
 }

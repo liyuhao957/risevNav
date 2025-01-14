@@ -107,15 +107,8 @@
               <div class="name">{{ item.name }}</div>
               <div class="desc">{{ item.shorthand }}</div>
             </div>
-            <div class="actions" v-show="item.focusOn || item.collected">
-              <img
-                @click.stop="clickCollected(item)"
-                title="收藏"
-                :src="getToolCollected(item.collected)"
-                class="action-icon"
-              />
+            <div class="actions" v-show="item.focusOn">
               <el-button
-                v-if="!isCollectionCategory"
                 v-bind="buttonProps"
                 @click.stop="handleEdit(item)"
                 class="action-btn"
@@ -123,7 +116,6 @@
                 <el-icon><Edit /></el-icon>
               </el-button>
               <el-button
-                v-if="!isCollectionCategory"
                 v-bind="buttonProps"
                 @click.stop="handleDelete(item)"
                 class="action-btn"
@@ -280,36 +272,19 @@ const handleConfirm = async () => {
 // 处理工具删除
 const handleDelete = async (tool) => {
   try {
-    console.log('开始删除工具:', tool);
+    await ElMessageBox.confirm(
+      '确定要删除该工具吗？',
+      '提示',
+      {
+        confirmButtonText: '确定',
+        cancelButtonText: '取消',
+        type: 'warning'
+      }
+    );
     
-    await ElMessageBox.confirm('确定要删除该工具吗？', '提示', {
-      confirmButtonText: '确定',
-      cancelButtonText: '取消',
-      type: 'warning'
-    });
-    
-    // 删除工具
     await DataService.deleteTool(tool.name);
-    
-    console.log('工具删除成功,准备更新本地数据:', {
-      toolName: tool.name,
-      currentTools: toolList.value,
-      allTools: allTools.value
-    });
-    
-    // 从本地数据中移除
-    allTools.value = allTools.value.filter(t => t.name !== tool.name);
-    toolList.value = toolList.value.filter(t => t.name !== tool.name);
-    
-    console.log('本地数据更新完成:', {
-      updatedAllTools: allTools.value,
-      updatedToolList: toolList.value
-    });
-    
     ElMessage.success('删除成功');
-    
-    // 刷新数据
-    await refreshData();
+    await refreshTools();
   } catch (error) {
     if (error !== 'cancel') {
       console.error('删除工具失败:', error);
@@ -335,33 +310,18 @@ const getAllTools = async () => {
 
 // 获取分类列表
 const getTypeList = async () => {
-  loading.value = true;
   try {
     const categories = await DataService.getCategories();
-    console.log('原始分类数据:', categories);
     
-    typeList.value = categories;
-    // 如果本地存储有排序,使用本地存储的顺序
-    const localMenuList = localStorage.getItem('risev_menu_list');
-    if (localMenuList) {
-      console.log('本地存储的排序:', localMenuList);
-      const savedList = JSON.parse(localMenuList);
-      // 合并本地存储的顺序和新获取的分类
-      typeList.value = savedList.filter(item => 
-        categories.some(cat => cat.name === item.name)
-      );
-      // 添加新的分类
-      categories.forEach(cat => {
-        if (!typeList.value.some(item => item.name === cat.name)) {
-          typeList.value.push(cat);
-        }
-      });
-      console.log('合并后的分类列表:', typeList.value);
-    }
+    // 按 weight 排序
+    typeList.value = categories
+      .filter(c => c.weight < 10000)
+      .sort((a, b) => a.weight - b.weight);
+    
+    console.log('分类列表更新完成:', typeList.value);
   } catch (error) {
     console.error('获取分类列表失败:', error);
-  } finally {
-    loading.value = false;
+    ElMessage.error('获取分类列表失败');
   }
 };
 
@@ -552,9 +512,9 @@ const handleSuccess = () => {
 
 // 判断是否为收藏分类
 const isCollectionCategory = computed(() => {
-  const category = typeList.value.find(t => t.weight === typeId.value)
-  return category?.name === '我的收藏'
-})
+  const currentType = typeList.value.find(t => t.weight === typeId.value);
+  return currentType?.weight === DataService.SPECIAL_CATEGORY_WEIGHT.MY_FAVORITES;
+});
 
 // 获取分类logo
 const getCategoryLogo = (categoryName) => {
