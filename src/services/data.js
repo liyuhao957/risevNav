@@ -37,10 +37,15 @@ class DataService {
 
   async getTools() {
     try {
-      console.log('从API获取工具数据');
-      const response = await fetch('/api/data')
-      const data = await response.json()
-      return data.tools;
+      console.log('开始获取工具数据');
+      const response = await fetch('/api/data');
+      if (!response.ok) {
+        throw new Error('获取工具数据失败');
+      }
+      const data = await response.json();
+      const tools = data.tools;
+      console.log('获取到工具数据:', tools);
+      return tools;
     } catch (error) {
       console.error('获取工具数据失败:', error);
       throw error;
@@ -179,6 +184,62 @@ class DataService {
       return true;
     } catch (error) {
       console.error('更新分类失败:', error);
+      throw error;
+    }
+  }
+
+  async updateTool(toolId, updateData) {
+    try {
+      const tools = await this.getTools();
+      const index = tools.findIndex(t => t.id === toolId);
+      
+      if (index === -1) {
+        throw new Error('工具不存在');
+      }
+      
+      // 更新工具数据
+      tools[index] = { ...tools[index], ...updateData };
+      await this.saveData({ tools });
+      
+      return true;
+    } catch (error) {
+      console.error('更新工具失败:', error);
+      throw error;
+    }
+  }
+
+  async deleteTool(toolName) {
+    try {
+      console.log('开始删除工具:', toolName);
+      const tools = await this.getTools();
+      
+      // 找到要删除的工具
+      const toolToDelete = tools.find(t => t.name === toolName);
+      if (!toolToDelete) {
+        throw new Error('工具不存在');
+      }
+      
+      console.log('找到要删除的工具:', toolToDelete);
+      
+      // 检查是否被收藏
+      const collectedTools = localStorage.getItem('risev_open_tool_list_collected');
+      if (collectedTools) {
+        const collected = JSON.parse(collectedTools);
+        if (collected.some(t => t.name === toolName)) {
+          throw new Error('该工具已被收藏，无法删除');
+        }
+      }
+      
+      // 删除工具
+      const newTools = tools.filter(t => t.name !== toolName);
+      console.log('过滤后的工具列表:', newTools);
+      
+      await this.saveData({ tools: newTools });
+      console.log('工具删除成功');
+      
+      return true;
+    } catch (error) {
+      console.error('删除工具失败:', error);
       throw error;
     }
   }

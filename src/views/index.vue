@@ -9,7 +9,7 @@
       <Bianqian />
     </div>
     <div class="main-container">
-      <ToolsList class="tools-list" />
+      <ToolsList class="tools-list" @edit="handleEditTool" />
       <FastOpen @clickRiseVComponent="clickRiseVComponent" />
     </div>
   </div>
@@ -246,6 +246,16 @@ provide('categoryActions', {
   handleEditCategory,
   handleDeleteCategory
 })
+
+const isEditTool = ref(false);
+const currentTool = ref(null);
+const toolDialogTitle = computed(() => isEditTool.value ? '编辑工具' : '添加工具');
+
+const handleEditTool = (tool) => {
+  currentTool.value = { ...tool };
+  isEditTool.value = true;
+  toolDialogVisible.value = true;
+}
 </script>
 
 <style lang="less" scoped>

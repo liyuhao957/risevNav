@@ -33,7 +33,7 @@
           <el-button
             type="text"
             size="small"
-            @click.stop="handleEdit(item)"
+            @click.stop="handleCategoryEdit(item)"
             class="action-btn"
           >
             <el-icon><Edit /></el-icon>
@@ -41,7 +41,7 @@
           <el-button
             type="text"
             size="small"
-            @click.stop="handleDelete(item)"
+            @click.stop="handleCategoryDelete(item)"
             class="action-btn"
           >
             <el-icon><Delete /></el-icon>
@@ -86,12 +86,20 @@
             v-for="(item, index) in toolList"
             :key="index"
           >
-            <el-image class="logo" :src="toolLogos[item.url] || require('@/assets/images/default.svg')" fit="contain">
+            <el-image 
+              class="logo" 
+              :src="toolLogos[item.url]" 
+              fit="contain"
+              :key="item.url"
+            >
               <template #error>
                 <div class="image-slot">
-                  <el-icon>
-                    <Picture />
-                  </el-icon>
+                  <el-icon><Picture /></el-icon>
+                </div>
+              </template>
+              <template #placeholder>
+                <div class="image-slot">
+                  <el-icon><Loading /></el-icon>
                 </div>
               </template>
             </el-image>
@@ -99,13 +107,29 @@
               <div class="name">{{ item.name }}</div>
               <div class="desc">{{ item.shorthand }}</div>
             </div>
-            <div class="edit" v-show="item.focusOn || item.collected">
+            <div class="actions" v-show="item.focusOn || item.collected">
               <img
                 @click.stop="clickCollected(item)"
                 title="收藏"
                 :src="getToolCollected(item.collected)"
-                style="width: 18px; height: 18px"
+                class="action-icon"
               />
+              <el-button
+                v-if="!isCollectionCategory"
+                v-bind="buttonProps"
+                @click.stop="handleEdit(item)"
+                class="action-btn"
+              >
+                <el-icon><Edit /></el-icon>
+              </el-button>
+              <el-button
+                v-if="!isCollectionCategory"
+                v-bind="buttonProps"
+                @click.stop="handleDelete(item)"
+                class="action-btn"
+              >
+                <el-icon><Delete /></el-icon>
+              </el-button>
             </div>
           </div>
         </div>
@@ -115,9 +139,9 @@
 </template>
 
 <script setup>
-import { onMounted, ref, watch, inject } from "vue";
+import { onMounted, ref, watch, inject, computed, defineEmits } from "vue";
 import { Search, Edit, Delete } from "@element-plus/icons-vue";
-import { ElMessage } from 'element-plus'
+import { ElMessage, ElMessageBox } from 'element-plus'
 import dataService from '@/services/data'
 import { getWebsiteLogo } from '@/utils/logo'
 import { getCachedLogo, cacheLogo, cleanCache } from '@/utils/cache'
@@ -135,24 +159,79 @@ const categories = ref([]);
 // 注入父组件方法
 const { handleEditCategory, handleDeleteCategory } = inject('categoryActions')
 
-// 添加编辑和删除处理方法
-const handleEdit = (category) => {
+// 添加 emit 声明
+const emit = defineEmits(['edit', 'success'])
+
+// 处理分类编辑
+const handleCategoryEdit = (category) => {
   handleEditCategory(category)
 }
 
-const handleDelete = (category) => {
+// 处理分类删除
+const handleCategoryDelete = (category) => {
   handleDeleteCategory(category)
 }
+
+// 处理工具编辑
+const handleEdit = (tool) => {
+  emit('edit', tool)
+}
+
+// 处理工具删除
+const handleDelete = async (tool) => {
+  try {
+    console.log('开始删除工具:', tool);
+    
+    await ElMessageBox.confirm('确定要删除该工具吗？', '提示', {
+      confirmButtonText: '确定',
+      cancelButtonText: '取消',
+      type: 'warning'
+    });
+    
+    // 删除工具
+    await dataService.deleteTool(tool.name);
+    
+    console.log('工具删除成功,准备更新本地数据:', {
+      toolName: tool.name,
+      currentTools: toolList.value,
+      allTools: allTools.value
+    });
+    
+    // 从本地数据中移除
+    allTools.value = allTools.value.filter(t => t.name !== tool.name);
+    toolList.value = toolList.value.filter(t => t.name !== tool.name);
+    
+    console.log('本地数据更新完成:', {
+      updatedAllTools: allTools.value,
+      updatedToolList: toolList.value
+    });
+    
+    ElMessage.success('删除成功');
+    
+    // 刷新数据
+    await refreshData();
+  } catch (error) {
+    if (error !== 'cancel') {
+      console.error('删除工具失败:', error);
+      ElMessage.error(error.message || '删除失败');
+    }
+  }
+};
 
 // 获取所有工具并缓存
 const getAllTools = async () => {
   try {
-    allTools.value = await dataService.getTools();
+    console.log('开始获取所有工具');
+    const tools = await dataService.getTools();
+    console.log('获取到工具数据:', tools);
+    allTools.value = tools;
+    return tools;
   } catch (error) {
     console.error('获取所有工具失败:', error);
-    allTools.value = [];
+    ElMessage.error('获取工具数据失败');
+    return [];
   }
-}
+};
 
 // 获取分类列表
 const getTypeList = async () => {
@@ -223,146 +302,159 @@ watch([typeId], async () => {
   console.log('最终的工具列表:', toolList.value);
 });
 
-// 获取工具列表
-const getToolList = async () => {
-  console.log('获取工具列表, typeId:', typeId.value);
-  loading.value = true;
-  try {
-    const tools = await dataService.getTools();
-    console.log('所有工具:', tools);
-    console.log('所有分类:', typeList.value);
-    
-    // 根据当前分类筛选工具
-    const currentCategory = typeList.value.find(t => t.weight === typeId.value);
-    console.log('当前分类信息:', {
-      typeId: typeId.value,
-      category: currentCategory,
-      allCategories: typeList.value.map(c => ({ name: c.name, weight: c.weight }))
-    });
-    
-    if (!currentCategory) {
-      console.error('未找到对应分类, typeId:', typeId.value);
-      toolList.value = [];
-      return;
-    }
+// 修改按钮属性
+const buttonProps = {
+  link: true,
+  size: 'small'
+}
 
-    // 如果是收藏分类，使用本地存储的收藏列表
-    if (currentCategory.name === '我的收藏') {
-      toolList.value = localStorage.getItem("risev_open_tool_list_collected")
-        ? JSON.parse(localStorage.getItem("risev_open_tool_list_collected"))
-        : [];
-      console.log('收藏的工具:', toolList.value);
-    } else {
-      // 其他分类按名称筛选
-      toolList.value = tools.filter(tool => {
-        const isMatch = tool.category === currentCategory.name;
-        console.log(`工具 ${tool.name} 的分类匹配结果:`, {
-          toolCategory: tool.category,
-          currentCategory: currentCategory.name,
-          isMatch,
-          tool
-        });
-        return isMatch;
-      });
-    }
-    
-    // 更新收藏状态
-    if (localStorage.getItem("risev_open_tool_list_collected")) {
-      let collectedList = JSON.parse(
-        localStorage.getItem("risev_open_tool_list_collected")
-      );
-      toolList.value.forEach((item) => {
-        item.collected = collectedList.some((i) => i.name === item.name);
-      });
-    }
-    
-    console.log('最终的工具列表:', toolList.value);
-  } catch (error) {
-    console.error('获取工具列表失败:', error);
-    ElMessage.error('获取工具列表失败');
-  } finally {
-    loading.value = false;
-  }
-};
-
-// 切换分类
-const goType = async (item) => {
-  console.log('切换分类:', item);
-  
-  // 如果正在加载中，不进行切换
-  if (loading.value) {
-    console.log('数据加载中，暂不切换分类');
-    return;
-  }
-  
-  // 检查参数有效性
-  if (!item) {
-    console.error('分类项为空');
-    return;
-  }
-  
-  // 检查weight是否存在且有效
-  if (item.weight === undefined || item.weight === null) {
-    console.error('无效的weight值:', item);
-    return;
-  }
-
-  const weight = Number(item.weight);
-  if (isNaN(weight)) {
-    console.error('weight不是有效的数字:', item.weight);
-    return;
-  }
-  
-  try {
-    typeId.value = weight;
-    await getToolList();
-    localStorage.setItem("risev_open_type_id", typeId.value);
-  } catch (error) {
-    console.error('切换分类失败:', error);
-    ElMessage.error('切换分类失败，请重试');
-  }
-};
-
-// 搜索
+// 添加搜索功能
 const search = () => {
   if (!keyword.value) {
     getToolList();
     return;
   }
-  const searchKey = keyword.value.toLowerCase();
-  toolList.value = toolList.value.filter((item) =>
-    item.shorthand.toLowerCase().includes(searchKey)
-  );
+  
+  const searchText = keyword.value.toLowerCase();
+  const category = typeList.value.find(t => t.weight === typeId.value);
+  if (!category) return;
+  
+  toolList.value = allTools.value.filter(tool => {
+    const isMatch = tool.category === category.name && (
+      tool.name.toLowerCase().includes(searchText) ||
+      tool.shorthand.toLowerCase().includes(searchText)
+    );
+    console.log(`搜索工具 ${tool.name}:`, {
+      category: tool.category,
+      searchText,
+      isMatch
+    });
+    return isMatch;
+  });
+}
+
+// 修改工具列表获取逻辑
+const getToolList = async () => {
+  try {
+    console.log('开始获取工具列表:', {
+      typeId: typeId.value,
+      allToolsCount: allTools.value?.length || 0
+    });
+    
+    // 获取当前分类
+    const category = typeList.value.find(t => t.weight === typeId.value);
+    if (!category) {
+      console.warn('未找到当前分类:', typeId.value);
+      toolList.value = [];
+      return;
+    }
+    
+    // 确保有工具数据
+    if (!allTools.value?.length) {
+      await getAllTools();
+    }
+    
+    console.log('准备过滤工具:', {
+      category,
+      allTools: allTools.value
+    });
+    
+    // 过滤当前分类的工具
+    const filteredTools = allTools.value.filter(tool => {
+      const isMatch = tool.category === category.name;
+      console.log(`工具 ${tool.name} 的分类匹配结果:`, {
+        toolCategory: tool.category,
+        categoryName: category.name,
+        isMatch,
+        tool
+      });
+      return isMatch;
+    });
+    
+    // 更新工具列表
+    toolList.value = filteredTools;
+    
+    console.log('工具列表更新完成:', {
+      category: category.name,
+      filteredTools,
+      allTools: allTools.value,
+      toolList: toolList.value
+    });
+  } catch (error) {
+    console.error('获取工具列表失败:', error);
+    ElMessage.error('获取工具列表失败');
+  }
 };
 
-const getToolCollected = (collected) => {
-  return collected
-    ? require("@/assets/images/collected.svg")
-    : require("@/assets/images/collect.svg");
+// 监听分类变化
+watch([typeId], () => {
+  if (!typeId.value) return;
+  getToolList();
+});
+
+// 修改刷新数据的方法
+const refreshData = async () => {
+  try {
+    console.log('开始刷新数据:', {
+      currentTypeId: typeId.value,
+      currentTools: toolList.value
+    });
+    
+    // 保存当前分类ID
+    const currentTypeId = typeId.value;
+    
+    // 重新获取最新数据
+    const [newCategories, newTools] = await Promise.all([
+      dataService.getCategories(),
+      dataService.getTools()
+    ]);
+    
+    console.log('获取到新数据:', {
+      newCategories,
+      newTools,
+      currentTypeId
+    });
+    
+    // 更新数据
+    typeList.value = newCategories;
+    allTools.value = newTools;
+    
+    console.log('数据更新后:', {
+      typeList: typeList.value,
+      allTools: allTools.value,
+      currentTypeId
+    });
+    
+    // 重新获取工具列表
+    await getToolList();
+    
+    // 清空搜索关键词
+    keyword.value = '';
+    
+    console.log('刷新完成:', {
+      categories: newCategories.length,
+      tools: newTools.length,
+      currentTools: toolList.value.length,
+      currentCategory: typeList.value.find(t => t.weight === currentTypeId)?.name,
+      allTools: allTools.value,
+      toolList: toolList.value
+    });
+  } catch (error) {
+    console.error('刷新数据失败:', error);
+    ElMessage.error('刷新数据失败');
+  }
+};
+
+// 在编辑或删除成功后调用刷新
+const handleSuccess = () => {
+  refreshData();
 }
 
-const clickCollected = (item) => {
-  item.collected = !item.collected;
-  let collectedList = [];
-  if (localStorage.getItem("risev_open_tool_list_collected")) {
-    collectedList = JSON.parse(
-      localStorage.getItem("risev_open_tool_list_collected")
-    );
-  }
-  if (item.collected) {
-    collectedList.push(item);
-  } else {
-    collectedList = collectedList.filter((i) => i.name != item.name);
-  }
-  localStorage.setItem(
-    "risev_open_tool_list_collected",
-    JSON.stringify(collectedList)
-  );
-}
-
-const openUrl = (item) => {
-  window.open(item.url);
-}
+// 判断是否为收藏分类
+const isCollectionCategory = computed(() => {
+  const category = typeList.value.find(t => t.weight === typeId.value)
+  return category?.name === '我的收藏'
+})
 
 // 获取分类logo
 const getCategoryLogo = (categoryName) => {
@@ -388,6 +480,132 @@ const getMaskImageStyle = (item) => {
   }
 }
 
+// 获取工具收藏状态图标
+const getToolCollected = (collected) => {
+  return collected
+    ? require("@/assets/images/collected.svg")
+    : require("@/assets/images/collect.svg");
+}
+
+// 处理工具收藏
+const clickCollected = (item) => {
+  item.collected = !item.collected;
+  let collectedList = [];
+  if (localStorage.getItem("risev_open_tool_list_collected")) {
+    collectedList = JSON.parse(
+      localStorage.getItem("risev_open_tool_list_collected")
+    );
+  }
+  if (item.collected) {
+    collectedList.push(item);
+  } else {
+    collectedList = collectedList.filter((i) => i.name != item.name);
+  }
+  localStorage.setItem(
+    "risev_open_tool_list_collected",
+    JSON.stringify(collectedList)
+  );
+}
+
+// 获取工具 logo
+const getToolLogo = async (url) => {
+  try {
+    // 如果已经有 logo，直接返回
+    if (toolLogos.value[url]) {
+      console.log('使用已缓存的 logo:', url);
+      return;
+    }
+    
+    // 如果正在加载，跳过
+    if (loadingLogos.value[url]) {
+      console.log('logo 正在加载中，跳过:', url);
+      return;
+    }
+    
+    // 标记为正在加载
+    loadingLogos.value[url] = true;
+    
+    // 规范化 URL
+    let normalizedUrl = url;
+    if (!/^https?:\/\//i.test(normalizedUrl)) {
+      normalizedUrl = 'https://' + normalizedUrl;
+    }
+    
+    console.log('开始获取网站 logo:', {
+      originalUrl: url,
+      normalizedUrl
+    });
+    
+    // 获取网站 logo
+    const logo = await getWebsiteLogo(normalizedUrl);
+    if (logo) {
+      console.log('获取到 logo:', {
+        url: normalizedUrl,
+        base64Length: logo.length
+      });
+      toolLogos.value[url] = logo;
+    } else {
+      console.warn('未获取到 logo，使用默认图标:', normalizedUrl);
+      toolLogos.value[url] = require('@/assets/images/default.svg');
+    }
+  } catch (error) {
+    console.error('获取工具 logo 失败:', {
+      url,
+      error,
+      errorMessage: error.message
+    });
+    toolLogos.value[url] = require('@/assets/images/default.svg');
+  } finally {
+    loadingLogos.value[url] = false;
+  }
+};
+
+// 初始化所有工具的 logo
+const initAllLogos = async () => {
+  try {
+    console.log('开始初始化所有工具的 logo:', {
+      toolCount: allTools.value.length
+    });
+    
+    // 获取每个工具的 logo
+    for (const tool of allTools.value) {
+      await getToolLogo(tool.url);
+    }
+    
+    console.log('所有工具 logo 初始化完成:', {
+      logoCount: Object.keys(toolLogos.value).length
+    });
+  } catch (error) {
+    console.error('初始化所有工具 logo 失败:', error);
+  }
+};
+
+// 获取单个工具的 logo
+const getToolLogoIfNeeded = async (tool) => {
+  if (!tool?.url) return;
+  await getToolLogo(tool.url);
+};
+
+// 打开工具链接
+const openUrl = (item) => {
+  try {
+    console.log('准备打开链接:', item.url);
+    
+    let url = item.url;
+    // 检查是否包含协议头
+    if (!/^https?:\/\//i.test(url)) {
+      url = 'https://' + url;
+    }
+    
+    console.log('处理后的链接:', url);
+    window.open(url);
+  } catch (error) {
+    console.error('打开链接失败:', error);
+    ElMessage.error('打开链接失败');
+  }
+};
+
+// 处理分类拖拽
 const dragStart = (event, index) => {
   event.dataTransfer.setData('text/plain', index);
 }
@@ -406,6 +624,7 @@ const saveOrder = () => {
   localStorage.setItem('risev_menu_list', JSON.stringify(typeList.value));
 }
 
+// 处理工具拖拽
 const dragToolsStart = (event, index) => {
   event.dataTransfer.setData('text/plain', index);
 }
@@ -423,77 +642,43 @@ const dropTools = (event, index) => {
   }
 }
 
-const loadToolLogo = async (tool) => {
-  // 如果已经在加载中,直接返回
-  if (loadingLogos.value[tool.url]) return
-  
+// 切换分类
+const goType = (item) => {
   try {
-    // 先从缓存获取
-    const cached = getCachedLogo(tool.url)
-    if (cached) {
-      toolLogos.value[tool.url] = cached
-      return
+    console.log('切换分类:', item);
+    typeId.value = item.weight;
+    localStorage.setItem('risev_open_type_id', item.weight);
+  } catch (error) {
+    console.error('切换分类失败:', error);
+    ElMessage.error('切换分类失败');
+  }
+};
+
+// 监听分类变化
+watch([typeId], async () => {
+  try {
+    console.log('分类ID变化:', typeId.value);
+    
+    // 获取当前分类信息
+    const category = typeList.value.find(t => t.weight === typeId.value);
+    if (!category) {
+      console.warn('未找到当前分类:', typeId.value);
+      return;
     }
     
-    // 标记为加载中
-    loadingLogos.value[tool.url] = true
-    
-    // 获取logo
-    const logo = await getWebsiteLogo(tool.url)
-    
-    // 缓存logo
-    cacheLogo(tool.url, logo)
-    
-    // 更新显示
-    toolLogos.value[tool.url] = logo
-  } catch (error) {
-    console.error('加载工具logo失败:', error)
-    // 使用默认图标
-    toolLogos.value[tool.url] = require('@/assets/images/default.svg')
-  } finally {
-    // 清除加载中标记
-    loadingLogos.value[tool.url] = false
-  }
-}
-
-// 监听所有工具列表变化
-watch(allTools, (newList) => {
-  if(newList && newList.length > 0) {
-    newList.forEach(tool => {
-      loadToolLogo(tool);
+    console.log('当前分类信息:', {
+      typeId: typeId.value,
+      categoryName: category.name,
+      toolsCount: allTools.value.filter(t => t.category === category.name).length
     });
-  }
-}, { immediate: true });
-
-// 添加刷新数据的方法
-const refreshData = async () => {
-  try {
-    // 重新获取最新的分类数据
-    const [newCategories, newTools] = await Promise.all([
-      dataService.getCategories(),
-      dataService.getTools()
-    ]);
     
-    typeList.value = newCategories;
-    allTools.value = newTools;
-    
-    // 重新筛选当前分类的工具
-    if (typeId.value) {
-      const category = typeList.value.find(c => c.weight === typeId.value);
-      if (category) {
-        toolList.value = filterToolsByCategory(newTools, category);
-      }
-    }
+    // 更新工具列表
+    await getToolList();
   } catch (error) {
-    console.error('刷新数据失败:', error);
-    ElMessage.error('刷新数据失败');
+    console.error('处理分类变化失败:', error);
+    ElMessage.error('加载分类数据失败');
   }
-}
-
-// 在编辑或删除成功后调用刷新
-const handleSuccess = () => {
-  refreshData();
-}
+});
 
 onMounted(async () => {
   // 清理过期和旧版本缓存
@@ -522,6 +707,9 @@ onMounted(async () => {
   } finally {
     loading.value = false;
   }
+  
+  // 初始化所有工具的 logo
+  await initAllLogos();
 });
 </script>
 
@@ -768,6 +956,34 @@ onMounted(async () => {
             text-overflow: ellipsis;
             white-space: nowrap;
             color: var(--sub-text-color) !important;
+          }
+        }
+
+        .actions {
+          position: absolute;
+          right: 15px;
+          top: 15px;
+          display: flex;
+          align-items: center;
+          gap: 5px;
+          
+          .action-icon {
+            width: 18px;
+            height: 18px;
+            cursor: pointer;
+          }
+          
+          .action-btn {
+            padding: 2px 5px;
+            color: #606266;
+            
+            &:hover {
+              color: #409EFF;
+            }
+            
+            &:last-child:hover {
+              color: #F56C6C;
+            }
           }
         }
       }
