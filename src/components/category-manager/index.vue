@@ -2,11 +2,20 @@
   <div class="category-manager">
     <el-form ref="formRef" :model="form" :rules="rules" label-width="80px">
       <el-form-item label="分类名称" prop="name">
-        <el-input v-model="form.name" placeholder="请输入分类名称" />
+        <el-input 
+          v-model="form.name" 
+          placeholder="请输入分类名称"
+          style="width: 200px;"
+        />
       </el-form-item>
       
       <el-form-item label="排序权重" prop="weight">
-        <el-input-number v-model="form.weight" :min="1" :max="9999" />
+        <el-input-number 
+          v-model="form.weight" 
+          :min="1" 
+          :max="9999"
+          style="width: 200px;" 
+        />
       </el-form-item>
     </el-form>
 
@@ -127,6 +136,11 @@ const emit = defineEmits(['cancel', 'success'])
 <style lang="less" scoped>
 .category-manager {
   padding: 20px;
+  
+  // 控制表单项宽度
+  :deep(.el-form-item__content) {
+    max-width: 200px;
+  }
 }
 
 .dialog-footer {

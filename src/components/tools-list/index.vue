@@ -130,7 +130,7 @@
     <el-dialog
       :title="dialogType === 'add' ? '添加工具' : '编辑工具'"
       v-model="dialogVisible"
-      width="30%"
+      width="400px"
     >
       <el-form :model="form" label-width="80px">
         <el-form-item label="工具名称" required>

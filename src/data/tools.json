@@ -1,30 +1,23 @@
 {
   "categories": [
     {
-      "name": "精品整理",
+      "name": "华为",
       "weight": 1,
-      "is_active": true
-    },
-    {
-      "name": "额额",
-      "weight": 3,
       "is_active": true
     }
   ],
   "tools": [
     {
-      "name": "百度",
-      "url": "www.baidu.com",
-      "shorthand": "百度",
-      "category": "精品整理",
-      "weight": 1
+      "name": "华为引擎下载",
+      "url": "https://developer.huawei.com/consumer/cn/doc/Tools-Library/quickapp-ide-download-0000001101172926#ZH-CN_TOPIC_0000001101172926__section9347192715112",
+      "shorthand": "hw",
+      "category": "华为"
     },
     {
-      "name": "完",
-      "url": "完",
-      "shorthand": "完",
-      "category": "精品整理",
-      "weight": 2
+      "name": "华为引擎说明",
+      "url": "https://developer.huawei.com/consumer/cn/doc/quickApp-Guides/quickapp-version-updates-0000001079803874",
+      "shorthand": "hw",
+      "category": "华为"
     }
   ]
 }

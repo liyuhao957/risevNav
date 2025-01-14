@@ -156,11 +156,11 @@
     </el-dropdown>
   </div>
 
-  <el-dialog v-model="toolDialogVisible" title="添加工具">
+  <el-dialog v-model="toolDialogVisible" title="添加工具" width="400px">
     <tool-manager @success="handleSuccess" @cancel="toolDialogVisible = false" />
   </el-dialog>
 
-  <el-dialog v-model="categoryDialogVisible" :title="categoryDialogTitle">
+  <el-dialog v-model="categoryDialogVisible" :title="categoryDialogTitle" width="350px">
     <category-manager 
       @success="handleSuccess" 
       @cancel="categoryDialogVisible = false"
