@@ -683,8 +683,20 @@ const drop = (event, index) => {
   saveOrder();
 }
 
-const saveOrder = () => {
-  localStorage.setItem('risev_menu_list', JSON.stringify(typeList.value));
+const saveOrder = async () => {
+  try {
+    // 保存到本地存储
+    localStorage.setItem('risev_menu_list', JSON.stringify(typeList.value));
+    
+    // 同时更新到后端
+    await DataService.updateCategoriesOrder(typeList.value);
+    
+    // 刷新分类列表
+    await getTypeList();
+  } catch (error) {
+    console.error('保存分类顺序失败:', error);
+    ElMessage.error('保存顺序失败');
+  }
 }
 
 // 工具拖拽开始

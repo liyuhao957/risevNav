@@ -317,6 +317,24 @@ class DataService {
       throw error;
     }
   }
+
+  // 更新分类顺序
+  async updateCategoriesOrder(categories) {
+    try {
+      // 更新所有分类的 weight
+      const updatedCategories = categories.map((category, index) => ({
+        ...category,
+        weight: index + 1
+      }));
+      
+      // 保存更新后的分类列表
+      await this.saveData({ categories: updatedCategories });
+      return true;
+    } catch (error) {
+      console.error('更新分类顺序失败:', error);
+      throw error;
+    }
+  }
 }
 
 export default new DataService(); 

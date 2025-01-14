@@ -6,18 +6,8 @@
       "is_active": true
     },
     {
-      "name": "分完完",
-      "weight": 12,
-      "is_active": true
-    },
-    {
       "name": "额额",
-      "weight": 13,
-      "is_active": true
-    },
-    {
-      "name": "诗",
-      "weight": 14,
+      "weight": 3,
       "is_active": true
     }
   ],
