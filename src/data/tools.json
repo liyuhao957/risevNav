@@ -46,13 +46,21 @@
       "name": "百度",
       "url": "www.baidu.com",
       "shorthand": "百度",
-      "category": "精品整理"
+      "category": "精品整理",
+      "weight": 2
     },
     {
       "name": "文",
       "url": "文",
       "shorthand": "文",
       "category": "文件处"
+    },
+    {
+      "name": "完",
+      "url": "完",
+      "shorthand": "完",
+      "category": "精品整理",
+      "weight": 1
     }
   ]
 }

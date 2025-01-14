@@ -284,6 +284,39 @@ class DataService {
       throw error;
     }
   }
+
+  // 更新工具顺序
+  async updateToolsOrder(categoryName, tools) {
+    try {
+      console.log('更新工具顺序:', { categoryName, tools });
+      
+      // 获取所有工具
+      const allTools = await this.getTools();
+      
+      // 更新当前分类工具的 weight
+      const updatedTools = allTools.map(tool => {
+        if (tool.category === categoryName) {
+          // 查找工具在新顺序中的位置
+          const index = tools.findIndex(t => t.name === tool.name);
+          if (index !== -1) {
+            return {
+              ...tool,
+              weight: index + 1
+            };
+          }
+        }
+        return tool;
+      });
+      
+      // 保存更新后的工具列表
+      await this.saveData({ tools: updatedTools });
+      
+      return true;
+    } catch (error) {
+      console.error('更新工具顺序失败:', error);
+      throw error;
+    }
+  }
 }
 
 export default new DataService(); 

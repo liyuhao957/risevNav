@@ -431,6 +431,9 @@ const getToolList = async () => {
       return isMatch;
     });
     
+    // 按 weight 排序
+    toolList.value = filteredTools.sort((a, b) => (a.weight || 0) - (b.weight || 0));
+    
     // 更新工具列表
     toolList.value = filteredTools;
     
@@ -684,23 +687,32 @@ const saveOrder = () => {
   localStorage.setItem('risev_menu_list', JSON.stringify(typeList.value));
 }
 
-// 处理工具拖拽
+// 工具拖拽开始
 const dragToolsStart = (event, index) => {
-  event.dataTransfer.setData('text/plain', index);
-}
+  event.dataTransfer.setData('toolIndex', index);
+};
 
-const dropTools = (event, index) => {
-  const draggedIndex = event.dataTransfer.getData('text/plain');
-  const tempList = [...toolList.value];
-  const draggedItem = tempList[draggedIndex];
-  tempList.splice(draggedIndex, 1);
-  tempList.splice(index, 0, draggedItem);
-  toolList.value = tempList;
-  // 保存工具列表顺序
-  if (typeId.value === 8) {
-    localStorage.setItem('risev_open_tool_list_collected', JSON.stringify(toolList.value));
+// 工具拖拽放下
+const dropTools = async (event, index) => {
+  try {
+    const dragIndex = event.dataTransfer.getData('toolIndex');
+    if (dragIndex === index) return;
+    
+    // 更新本地顺序
+    const dragTool = toolList.value[dragIndex];
+    toolList.value.splice(dragIndex, 1);
+    toolList.value.splice(index, 0, dragTool);
+    
+    // 保存新顺序
+    await DataService.updateToolsOrder(currentCategory.value, toolList.value);
+    
+    // 刷新工具列表
+    await refreshTools();
+  } catch (error) {
+    console.error('工具拖拽失败:', error);
+    ElMessage.error('排序失败');
   }
-}
+};
 
 // 切换分类
 const goType = (item) => {
@@ -796,6 +808,12 @@ const updateTool = async (toolData) => {
     throw error;
   }
 };
+
+// 当前分类
+const currentCategory = computed(() => {
+  const category = typeList.value.find(t => t.weight === typeId.value);
+  return category?.name || '';
+});
 
 onMounted(async () => {
   // 清理过期和旧版本缓存
