@@ -43,12 +43,6 @@
   ],
   "tools": [
     {
-      "name": "清",
-      "url": "清",
-      "shorthand": "清",
-      "category": "分完完"
-    },
-    {
       "name": "百度",
       "url": "www.baidu.com",
       "shorthand": "百度",

@@ -135,6 +135,39 @@
         </div>
       </el-scrollbar>
     </div>
+    <el-dialog
+      :title="dialogType === 'add' ? '添加工具' : '编辑工具'"
+      v-model="dialogVisible"
+      width="30%"
+    >
+      <el-form :model="form" label-width="80px">
+        <el-form-item label="工具名称" required>
+          <el-input v-model="form.name" placeholder="请输入工具名称" />
+        </el-form-item>
+        <el-form-item label="工具链接" required>
+          <el-input v-model="form.url" placeholder="请输入工具链接" />
+        </el-form-item>
+        <el-form-item label="工具简介" required>
+          <el-input v-model="form.shorthand" placeholder="请输入工具简介" />
+        </el-form-item>
+        <el-form-item label="所属分类" required>
+          <el-select v-model="form.category" placeholder="请选择分类">
+            <el-option
+              v-for="item in typeList"
+              :key="item.name"
+              :label="item.name"
+              :value="item.name"
+            />
+          </el-select>
+        </el-form-item>
+      </el-form>
+      <template #footer>
+        <span class="dialog-footer">
+          <el-button @click="dialogVisible = false">取消</el-button>
+          <el-button type="primary" @click="handleConfirm">确认</el-button>
+        </span>
+      </template>
+    </el-dialog>
   </div>
 </template>
 
@@ -142,7 +175,7 @@
 import { onMounted, ref, watch, inject, computed, defineEmits } from "vue";
 import { Search, Edit, Delete } from "@element-plus/icons-vue";
 import { ElMessage, ElMessageBox } from 'element-plus'
-import dataService from '@/services/data'
+import DataService from '@/services/data'
 import { getWebsiteLogo } from '@/utils/logo'
 import { getCachedLogo, cacheLogo, cleanCache } from '@/utils/cache'
 
@@ -162,6 +195,16 @@ const { handleEditCategory, handleDeleteCategory } = inject('categoryActions')
 // 添加 emit 声明
 const emit = defineEmits(['edit', 'success'])
 
+// 对话框类型：add-添加，edit-编辑
+const dialogType = ref('add');
+const dialogVisible = ref(false);
+const form = ref({
+  name: '',
+  url: '',
+  shorthand: '',
+  category: ''
+});
+
 // 处理分类编辑
 const handleCategoryEdit = (category) => {
   handleEditCategory(category)
@@ -172,10 +215,67 @@ const handleCategoryDelete = (category) => {
   handleDeleteCategory(category)
 }
 
-// 处理工具编辑
+// 打开添加对话框
+const handleAdd = () => {
+  dialogType.value = 'add';
+  form.value = {
+    name: '',
+    url: '',
+    shorthand: '',
+    category: currentCategory.value
+  };
+  dialogVisible.value = true;
+};
+
+// 打开编辑对话框
 const handleEdit = (tool) => {
-  emit('edit', tool)
-}
+  dialogType.value = 'edit';
+  form.value = {
+    ...tool,
+    category: tool.category,
+    originalName: tool.name,
+    originalUrl: tool.url
+  };
+  dialogVisible.value = true;
+};
+
+// 刷新工具列表
+const refreshTools = async () => {
+  try {
+    console.log('开始刷新工具列表');
+    // 重新获取工具数据
+    const tools = await DataService.getTools();
+    allTools.value = tools;
+    
+    // 重新过滤当前分类的工具
+    await getToolList();
+    
+    console.log('工具列表刷新完成');
+  } catch (error) {
+    console.error('刷新工具列表失败:', error);
+    throw error;
+  }
+};
+
+// 处理确认
+const handleConfirm = async () => {
+  try {
+    if (dialogType.value === 'add') {
+      // 添加工具
+      await DataService.addToolData(form.value);
+      ElMessage.success('添加成功');
+    } else {
+      // 更新工具
+      await updateTool(form.value);
+      ElMessage.success('编辑成功');
+    }
+    dialogVisible.value = false;
+    await refreshTools();
+  } catch (error) {
+    console.error('操作失败:', error);
+    ElMessage.error(error.message || '操作失败');
+  }
+};
 
 // 处理工具删除
 const handleDelete = async (tool) => {
@@ -189,7 +289,7 @@ const handleDelete = async (tool) => {
     });
     
     // 删除工具
-    await dataService.deleteTool(tool.name);
+    await DataService.deleteTool(tool.name);
     
     console.log('工具删除成功,准备更新本地数据:', {
       toolName: tool.name,
@@ -222,7 +322,7 @@ const handleDelete = async (tool) => {
 const getAllTools = async () => {
   try {
     console.log('开始获取所有工具');
-    const tools = await dataService.getTools();
+    const tools = await DataService.getTools();
     console.log('获取到工具数据:', tools);
     allTools.value = tools;
     return tools;
@@ -237,7 +337,7 @@ const getAllTools = async () => {
 const getTypeList = async () => {
   loading.value = true;
   try {
-    const categories = await dataService.getCategories();
+    const categories = await DataService.getCategories();
     console.log('原始分类数据:', categories);
     
     typeList.value = categories;
@@ -405,8 +505,8 @@ const refreshData = async () => {
     
     // 重新获取最新数据
     const [newCategories, newTools] = await Promise.all([
-      dataService.getCategories(),
-      dataService.getTools()
+      DataService.getCategories(),
+      DataService.getTools()
     ]);
     
     console.log('获取到新数据:', {
@@ -679,6 +779,63 @@ watch([typeId], async () => {
     ElMessage.error('加载分类数据失败');
   }
 });
+
+// 添加工具
+const addTool = async (toolData) => {
+  try {
+    // 验证必填字段
+    if (!toolData.name || !toolData.url || !toolData.category) {
+      throw new Error('请填写完整信息');
+    }
+    
+    // 添加工具
+    await DataService.addToolData(toolData);
+    
+    // 获取新工具的 logo
+    await getToolLogoIfNeeded(toolData);
+    
+    // 刷新工具列表
+    emit('success');
+  } catch (error) {
+    console.error('添加工具失败:', error);
+    throw error;
+  }
+};
+
+// 更新工具
+const updateTool = async (toolData) => {
+  try {
+    // 验证必填字段
+    if (!toolData.name || !toolData.url || !toolData.category) {
+      throw new Error('请填写完整信息');
+    }
+    
+    // 使用原始名称查找工具
+    const success = await DataService.updateTool(toolData.originalName, {
+      name: toolData.name,
+      url: toolData.url,
+      shorthand: toolData.shorthand,
+      category: toolData.category
+    });
+    
+    if (!success) {
+      throw new Error('更新失败');
+    }
+    
+    // 如果 URL 发生变化，获取新的 logo
+    if (toolData.url !== form.value.originalUrl) {
+      await getToolLogoIfNeeded(toolData);
+    }
+    
+    // 刷新工具列表
+    await refreshTools();
+    
+    return true;
+  } catch (error) {
+    console.error('更新工具失败:', error);
+    throw error;
+  }
+};
 
 onMounted(async () => {
   // 清理过期和旧版本缓存

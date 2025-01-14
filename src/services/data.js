@@ -188,10 +188,11 @@ class DataService {
     }
   }
 
-  async updateTool(toolId, updateData) {
+  async updateTool(toolName, updateData) {
     try {
+      console.log('更新工具:', { toolName, updateData });
       const tools = await this.getTools();
-      const index = tools.findIndex(t => t.id === toolId);
+      const index = tools.findIndex(t => t.name === toolName);
       
       if (index === -1) {
         throw new Error('工具不存在');
@@ -240,6 +241,46 @@ class DataService {
       return true;
     } catch (error) {
       console.error('删除工具失败:', error);
+      throw error;
+    }
+  }
+
+  // 添加工具
+  async addToolData(toolData) {
+    try {
+      console.log('添加工具:', toolData);
+      // TODO: 调用后端 API 添加工具
+      // 临时使用本地存储
+      const tools = await this.getTools();
+      tools.push({
+        ...toolData,
+        id: Date.now(), // 临时使用时间戳作为 ID
+        weight: tools.length + 1
+      });
+      localStorage.setItem('tools', JSON.stringify(tools));
+      return true;
+    } catch (error) {
+      console.error('添加工具失败:', error);
+      throw error;
+    }
+  }
+
+  // 更新工具
+  async updateToolData(toolData) {
+    try {
+      console.log('更新工具:', toolData);
+      // TODO: 调用后端 API 更新工具
+      // 临时使用本地存储
+      const tools = await this.getTools();
+      const index = tools.findIndex(t => t.id === toolData.id);
+      if (index === -1) {
+        throw new Error('工具不存在');
+      }
+      tools[index] = { ...tools[index], ...toolData };
+      localStorage.setItem('tools', JSON.stringify(tools));
+      return true;
+    } catch (error) {
+      console.error('更新工具失败:', error);
       throw error;
     }
   }
