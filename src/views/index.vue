@@ -1,6 +1,9 @@
 <template>
   <div class="index" :data-theme="$store.state.theme">
     <div class="header-risev">
+      <div class="logo-container">
+        <span class="logo-text">Tc</span>
+      </div>
       <Header />
       <SearchBar class="search-bar" />
     </div>
@@ -361,6 +364,25 @@ const handleEditTool = (tool) => {
   display: flex;
   align-items: center;
   justify-content: center;
+}
+
+.logo-container {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px 0;
+}
+
+.logo-text {
+  font-size: 36px;
+  font-weight: bold;
+  color: #4169E1;
+}
+
+.logo-suffix {
+  font-size: 24px;
+  margin-left: 8px;
+  color: var(--text-color);
 }
 </style>
 <style lang="less">

@@ -6,36 +6,6 @@
       "is_active": true
     },
     {
-      "name": "文件处",
-      "weight": 2,
-      "is_active": true
-    },
-    {
-      "name": "图像处理",
-      "weight": 3,
-      "is_active": true
-    },
-    {
-      "name": "设计制作",
-      "weight": 4,
-      "is_active": true
-    },
-    {
-      "name": "编程助手",
-      "weight": 5,
-      "is_active": true
-    },
-    {
-      "name": "效率工具",
-      "weight": 6,
-      "is_active": true
-    },
-    {
-      "name": "RiseV专属",
-      "weight": 7,
-      "is_active": true
-    },
-    {
       "name": "分完完",
       "weight": 12,
       "is_active": true
@@ -47,20 +17,14 @@
       "url": "www.baidu.com",
       "shorthand": "百度",
       "category": "精品整理",
-      "weight": 2
-    },
-    {
-      "name": "文",
-      "url": "文",
-      "shorthand": "文",
-      "category": "文件处"
+      "weight": 1
     },
     {
       "name": "完",
       "url": "完",
       "shorthand": "完",
       "category": "精品整理",
-      "weight": 1
+      "weight": 2
     }
   ]
 }

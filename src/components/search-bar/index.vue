@@ -1,8 +1,5 @@
 <template>
   <div class="search-bar" :data-theme="$store.state.theme">
-    <div style="display: flex; align-items: center; justify-content: center">
-      <img src="@/assets/images/risev1.png" style="width: 400px" />
-    </div>
     <div class="main-container">
       <div :class="isInputActive ? 'input-box input-box-active' : 'input-box'">
         <div class="search-left">
