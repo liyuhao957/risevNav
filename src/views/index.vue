@@ -16,6 +16,7 @@
       <FastOpen @clickRiseVComponent="clickRiseVComponent" />
     </div>
   </div>
+  <BottomNav />
   <div
     class="more animate__animated animate__slideInRight"
     @click="dialogVisible = true"
@@ -184,6 +185,7 @@ import ToolManager from '@/components/tool-manager/index.vue'
 import CategoryManager from '@/components/category-manager/index.vue'
 import { ElMessageBox, ElMessage } from 'element-plus'
 import dataService from '@/services/data'
+import BottomNav from "@/components/bottom-nav/index.vue";
 
 const dialogVisible = ref(false);
 const showRiseVComponent = ref(false);
