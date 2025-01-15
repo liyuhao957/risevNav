@@ -1,6 +1,8 @@
 import requests
 import time
 import hashlib
+import json
+import os
 from datetime import datetime
 from bs4 import BeautifulSoup
 
@@ -11,7 +13,61 @@ class VersionMonitor:
         self.check_interval = check_interval
         self.last_hash = None
         self.last_content = None
+        self.data_file = '../monitor-server/data/version_updates.json'
         
+        # 确保数据目录存在
+        os.makedirs(os.path.dirname(self.data_file), exist_ok=True)
+        
+        # 初始化数据文件
+        if not os.path.exists(self.data_file):
+            self._save_data({"latest": None, "history": [], "lastCheck": None})
+    
+    def _save_data(self, data):
+        """保存数据到JSON文件"""
+        try:
+            with open(self.data_file, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            print(f"数据已保存到: {self.data_file}")
+        except Exception as e:
+            print(f"保存数据失败: {str(e)}")
+    
+    def _update_data(self, content):
+        """更新数据文件"""
+        try:
+            # 读取现有数据
+            if os.path.exists(self.data_file):
+                with open(self.data_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+            else:
+                data = {"latest": None, "history": [], "lastCheck": None}
+            
+            # 检查是否有新版本
+            if data["latest"] and (
+                not content or 
+                data["latest"]["version"] != content["version"]
+            ):
+                # 将当前版本添加到历史记录
+                current_version = data["latest"].copy()
+                # 检查历史记录中是否已存在该版本
+                if not any(h["version"] == current_version["version"] for h in data["history"]):
+                    data["history"].append(current_version)
+                    # 按日期降序排序历史记录
+                    data["history"].sort(key=lambda x: x["date"], reverse=True)
+            
+            # 更新最新版本
+            if content:
+                data["latest"] = content
+            
+            # 更新检查时间
+            data["lastCheck"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            # 保存更新后的数据
+            self._save_data(data)
+            print("数据更新成功")
+            
+        except Exception as e:
+            print(f"更新数据失败: {str(e)}")
+    
     def get_page_content(self):
         """获取网页特定内容"""
         try:
@@ -241,6 +297,8 @@ class VersionMonitor:
                 self.send_notification(startup_message, msg_type="post")
                 self.last_hash = self.calculate_hash(current_content)
                 self.last_content = current_content
+                # 保存初始数据
+                self._update_data(current_content)
             
             while True:
                 try:
@@ -255,8 +313,12 @@ class VersionMonitor:
                             self.send_notification(message, msg_type="post")
                             self.last_hash = self.calculate_hash(content)
                             self.last_content = content
+                            # 保存更新的数据
+                            self._update_data(content)
                         else:
                             print(f"[{current_time}] 未检测到新版本")
+                            # 更新最后检查时间
+                            self._update_data(self.last_content)
                     
                     time.sleep(self.check_interval)
                     

@@ -1,54 +1,122 @@
 import requests
 import time
 import hashlib
+import json
+import os
 from datetime import datetime
 from bs4 import BeautifulSoup
 import re
 
-class WebMonitor:
-    def __init__(self, url, webhook_url, interval=300):
+class LoaderMonitor:
+    def __init__(self, url, webhook_url, check_interval=300):
         self.url = url
         self.webhook_url = webhook_url
-        self.interval = interval
+        self.check_interval = check_interval
         self.last_hash = None
         self.last_content = None
-
+        self.data_file = '../monitor-server/data/loader_updates.json'
+        
+        # 确保数据目录存在
+        os.makedirs(os.path.dirname(self.data_file), exist_ok=True)
+        
+        # 初始化数据文件
+        if not os.path.exists(self.data_file):
+            self._save_data({"latest": None, "history": [], "lastCheck": None})
+    
+    def _save_data(self, data):
+        """保存数据到JSON文件"""
+        try:
+            with open(self.data_file, 'w', encoding='utf-8') as f:
+                json.dump(data, f, ensure_ascii=False, indent=2)
+            print(f"数据已保存到: {self.data_file}")
+        except Exception as e:
+            print(f"保存数据失败: {str(e)}")
+    
+    def _update_data(self, content):
+        """更新数据文件"""
+        try:
+            # 读取现有数据
+            if os.path.exists(self.data_file):
+                with open(self.data_file, 'r', encoding='utf-8') as f:
+                    data = json.load(f)
+            else:
+                data = {"latest": None, "history": [], "lastCheck": None}
+            
+            # 检查是否有新版本
+            if data["latest"] and (
+                not content or 
+                data["latest"]["version"] != content["version"]
+            ):
+                # 将当前版本添加到历史记录
+                current_version = data["latest"].copy()
+                # 检查历史记录中是否已存在该版本
+                if not any(h["version"] == current_version["version"] for h in data["history"]):
+                    data["history"].append(current_version)
+                    # 按日期降序排序历史记录
+                    data["history"].sort(key=lambda x: x["lastCheck"], reverse=True)
+            
+            # 更新最新版本
+            if content:
+                data["latest"] = content
+            
+            # 更新检查时间
+            data["lastCheck"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+            
+            # 保存更新后的数据
+            self._save_data(data)
+            print("数据更新成功")
+            
+        except Exception as e:
+            print(f"更新数据失败: {str(e)}")
+    
     def monitor(self):
-        """监控网页变化"""
+        """开始监控"""
         print(f"开始监控网页: {self.url}")
         
         try:
-            # 先获取一次内容并发送启动通知
-            print("正在获取初始内容...")
-            content = self.get_page_content()
-            result = self.parse_content(content)
-            self.last_content = result
-            self.last_hash = self.calculate_hash(result)
+            # 获取当前信息并发送启动通知
+            retries = 3  # 添加重试机制
+            for attempt in range(retries):
+                try:
+                    current_content = self.get_page_content()
+                    if current_content:
+                        break
+                except Exception as e:
+                    if attempt == retries - 1:
+                        raise
+                    print(f"获取内容失败，{attempt + 1}/{retries} 次重试...")
+                    time.sleep(5)
             
-            startup_message = "开始监控华为快应用加载器更新..."
-            self.send_notification(startup_message, msg_type="post")
-            
-            print(f"等待 {self.interval} 秒后再次检查...")
-            time.sleep(self.interval)  # 先等待一个间隔
+            if current_content:
+                startup_message = self._format_notification(current_content, is_startup=True)
+                self.send_notification(startup_message, msg_type="post")
+                self.last_hash = self.calculate_hash(current_content)
+                self.last_content = current_content
+                # 保存初始数据
+                self._update_data(current_content)
             
             while True:
                 try:
-                    print("\n开始新一轮检查...")  # 添加日志
+                    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
                     content = self.get_page_content()
-                    result = self.parse_content(content)
-                    current_hash = self.calculate_hash(result)
                     
-                    if current_hash != self.last_hash:
-                        change_message = self.format_change_message(result)
-                        self.send_notification(change_message, msg_type="post")
-                        
-                        self.last_hash = current_hash
-                        self.last_content = result
+                    if content:
+                        # 比较版本号
+                        if self._is_version_newer(content['version'], self.last_content['version']):
+                            message = self._format_notification(content)
+                            print(f"[{current_time}] 检测到新版本: {content['version']}")
+                            self.send_notification(message, msg_type="post")
+                            self.last_hash = self.calculate_hash(content)
+                            self.last_content = content
+                            # 保存更新的数据
+                            self._update_data(content)
+                        else:
+                            print(f"[{current_time}] 未检测到新版本")
+                            # 更新最后检查时间
+                            self._update_data(self.last_content)
                     
-                    current_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")  # 添加时间戳
-                    print(f"[{current_time}] 等待 {self.interval} 秒后再次检查...")
-                    time.sleep(self.interval)
-                    
+                    time.sleep(self.check_interval)
+                
                 except KeyboardInterrupt:
                     raise  # 向外层抛出中断信号
                 except Exception as e:  # 添加错误处理
@@ -194,75 +262,31 @@ class WebMonitor:
             # 如果消息已经是格式化的字典，直接使用
             content = message
         elif msg_type == "post":
-            # 如果是启动消息
-            if "开始监控" in message:
-                content = {
-                    "msg_type": "interactive",
-                    "card": {
-                        "config": {
-                            "wide_screen_mode": True
-                        },
-                        "header": {
-                            "template": "blue",
-                            "title": {
-                                "content": "快应用加载器更新通知",
-                                "tag": "plain_text"
+            # 如果是markdown格式的消息，直接包装
+            content = {
+                "msg_type": "interactive",
+                "card": {
+                    "config": {
+                        "wide_screen_mode": True
+                    },
+                    "header": {
+                        "template": "blue",
+                        "title": {
+                            "content": "快应用加载器更新通知",
+                            "tag": "plain_text"
+                        }
+                    },
+                    "elements": [
+                        {
+                            "tag": "div",
+                            "text": {
+                                "tag": "lark_md",
+                                "content": message
                             }
-                        },
-                        "elements": [
-                            {
-                                "tag": "div",
-                                "text": {
-                                    "tag": "lark_md",
-                                    "content": (
-                                        "🔔 加载器更新监控服务已启动\n\n"
-                                        "|  类型  |  内容  |\n"
-                                        "|:------:|:------|\n"
-                                        f"|  版本  | `{self.last_content['version']}` |\n"
-                                        f"|  规范  | `{self.last_content['spec']}` |\n"
-                                        f"|  文件  | `{self.last_content['text']}` |\n\n"
-                                        f"📥 下载链接：{self.last_content['url']}\n\n"
-                                        f"⏱️ 监控间隔：`{self.interval}秒`"
-                                    )
-                                }
-                            }
-                        ]
-                    }
+                        }
+                    ]
                 }
-            else:
-                # 更新通知的格式
-                content = {
-                    "msg_type": "interactive",
-                    "card": {
-                        "config": {
-                            "wide_screen_mode": True
-                        },
-                        "header": {
-                            "template": "blue",
-                            "title": {
-                                "content": "快应用加载器更新通知",
-                                "tag": "plain_text"
-                            }
-                        },
-                        "elements": [
-                            {
-                                "tag": "div",
-                                "text": {
-                                    "tag": "lark_md",
-                                    "content": (
-                                        "🚨 检测到加载器更新！\n\n"
-                                        "|  类型  |  内容  |\n"
-                                        "|:------:|:------|\n"
-                                        f"|  版本  | `{self.last_content['version']}` |\n"
-                                        f"|  规范  | `{self.last_content['spec']}` |\n"
-                                        f"|  文件  | `{self.last_content['text']}` |\n\n"
-                                        f"📥 下载链接：{self.last_content['url']}"
-                                    )
-                                }
-                            }
-                        ]
-                    }
-                }
+            }
         else:
             content = {
                 "msg_type": "text",
@@ -330,13 +354,49 @@ class WebMonitor:
             f"下载链接: {content['url']}"
         )
 
+    def _format_notification(self, content, is_startup=False):
+        """格式化通知消息"""
+        if is_startup:
+            return (
+                "🔔 加载器更新监控服务已启动\n"
+                "|  类型  |  内容  |\n"
+                "|:------:|:------|\n"
+                f"|  版本  | `{content['version']}` |\n"
+                f"|  规范  | `{content['spec']}` |\n"
+                f"|  文件  | `{content['text']}` |\n\n"
+                f"📥 下载链接：{content['url']}\n\n"
+                f"⏱️ 监控间隔：`{self.check_interval}秒`"
+            )
+        else:
+            return (
+                "🚨 检测到加载器更新！\n"
+                "|  类型  |  内容  |\n"
+                "|:------:|:------|\n"
+                f"|  版本  | `{content['version']}` |\n"
+                f"|  规范  | `{content['spec']}` |\n"
+                f"|  文件  | `{content['text']}` |\n\n"
+                f"📥 下载链接：{content['url']}"
+            )
+
+    def _is_version_newer(self, new_version, old_version):
+        """比较版本号"""
+        try:
+            # 将版本号分割为数字列表
+            new_parts = [int(x) for x in new_version.split('.')]
+            old_parts = [int(x) for x in old_version.split('.')]
+            
+            return new_parts > old_parts
+        except Exception as e:
+            print(f"版本号比较出错: {str(e)}")
+            return False
+
 # 使用示例
 if __name__ == "__main__":
     target_url = "https://developer.huawei.com/consumer/cn/doc/Tools-Library/quickapp-ide-download-0000001101172926"
     webhook_url = "https://open.feishu.cn/open-apis/bot/v2/hook/b5d78e2d-502d-42c7-81d2-48eebf43224e"
     
     # 创建监控器
-    monitor = WebMonitor(target_url, webhook_url)
+    monitor = LoaderMonitor(target_url, webhook_url)
     
     # 开始监控
     monitor.monitor() 

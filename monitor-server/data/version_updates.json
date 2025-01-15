@@ -1,5 +1,17 @@
 {
-  "latest": null,
+  "latest": {
+    "version": "1118",
+    "updates": [
+      "【组件更新】",
+      "【ad-native-view】\n• ad-button在ad-native-view内部使用，必须绑定相同的adid\n\n参考文档：组件 >ad-native-view https://developer.huawei.com/consumer/cn/doc/quickApp-References/quickapp-component-ad-native-view-0000001813966981",
+      "【ad-template】\n• ad-template组件新增默认圆角样式border-radius\n\n参考文档：组件 >ad-template https://developer.huawei.com/consumer/cn/doc/quickApp-References/quickapp-component-ad-template-0000001866389333",
+      "【shortcut-button】\n• 该组件必须完整对用户可见，不可被任何元素覆盖或遮挡（含透明元素），否则会影响您的计费\n\n参考文档：组件 >shortcut-button https://developer.huawei.com/consumer/cn/doc/quickApp-References/quickapp-component-shortcut-button-0000001207139196",
+      "【ad-view】\n• 该组件必须完整对用户可见，不可被任何元素覆盖或遮挡（含透明元素），否则会影响您的计费\n\n参考文档：组件 >ad-view https://developer.huawei.com/consumer/cn/doc/quickApp-References/quickapp-component-ad-view-0000001330871396",
+      "\n【接口更新】",
+      "【应用配置】\n• 接口configuration.getFoldableState增加三折屏状态值\n\n参考文档：API > 系统能力 > 应用配置 https://developer.huawei.com/consumer/cn/doc/quickApp-References/quickapp-api-configuration-0000001074911860"
+    ],
+    "date": "2024-11-12"
+  },
   "history": [],
-  "lastCheck": null
+  "lastCheck": "2025-01-15 13:50:10"
 }

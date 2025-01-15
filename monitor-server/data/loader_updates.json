@@ -1,5 +1,10 @@
 {
-  "latest": null,
+  "latest": {
+    "text": "HwQuickApp_Loader_Phone_V14.4.1.300.apk",
+    "url": "https://contentcenter-vali-drcn.dbankcdn.cn/pvt_2/DeveloperAlliance_package_901_9/67/v3/7Rw3rYTTR8qyd8EuWTnD-Q/QuickAPP-newly-product-release-loader-14.4.1.300.apk?HW-CC-KV=V1&HW-CC-Date=20241112T075408Z&HW-CC-Expire=315360000&HW-CC-Sign=885C403F330C4B97E242531B11356313D4368BEADA29DA4563FB99A45C7D9D19",
+    "version": "14.4.1.300",
+    "spec": "1118"
+  },
   "history": [],
-  "lastCheck": null
+  "lastCheck": "2025-01-15 13:50:56"
 }
