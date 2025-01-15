@@ -206,3 +206,103 @@ tail -f logs/mon-backend.log
 tail -f logs/monitor-sm.log
 tail -f logs/monitor-jzq.log
 ```
+
+## 代码管理和更新
+### 方法一：Git方式（推荐）
+1. 初始配置（仅首次）
+```bash
+# 在服务器上
+cd /var/www/risevNav
+git init
+git remote add origin 你的Git仓库地址
+```
+
+2. 更新代码
+```bash
+# 在服务器上
+cd /var/www/risevNav
+git pull origin main  # 或master
+
+# 安装依赖和构建
+npm install
+npm run build
+cd monitor-frontend
+npm install
+npm run build
+
+# 重启服务
+pm2 restart all
+```
+
+优点：
+- 只更新修改的文件，速度快
+- 支持断点续传
+- 有版本控制
+- 可以方便地回滚
+- 支持多人协作
+
+### 方法二：SCP方式
+1. 直接上传
+```bash
+# 在本地项目目录执行
+scp -P 30887 -r ./* root@24.233.2.86:/var/www/risevNav/
+```
+
+2. 在服务器上构建
+```bash
+cd /var/www/risevNav
+npm install
+npm run build
+cd monitor-frontend
+npm install
+npm run build
+pm2 restart all
+```
+
+优点：
+- 操作简单直接
+- 不需要Git配置
+- 适合小型项目
+
+### 方法三：自动化脚本（推荐日常使用）
+1. 使用 update.sh（项目根目录下）
+```bash
+# 在本地项目目录执行
+./update.sh
+```
+
+脚本功能：
+- 自动备份当前代码
+- 上传新代码
+- 安装依赖
+- 构建项目
+- 重启服务
+- 显示访问地址
+
+### 代码备份
+1. 自动备份
+```bash
+# 备份文件位置：/var/www/
+# 文件名格式：risevNav_backup_YYYYMMDD.tar.gz
+```
+
+2. 手动备份
+```bash
+cd /var/www
+tar -czf risevNav_backup_$(date +%Y%m%d).tar.gz risevNav/
+```
+
+3. 恢复备份
+```bash
+cd /var/www
+tar -xzf risevNav_backup_指定日期.tar.gz
+cd risevNav
+pm2 restart all
+```
+
+### 注意事项
+1. 更新前先在本地测试
+2. 大更新建议在低峰期进行
+3. 保持服务器配置文件不被覆盖
+4. 定期清理旧的备份文件
+5. 每次更新后检查服务状态
