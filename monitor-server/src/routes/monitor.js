@@ -12,10 +12,17 @@ const readJsonFile = async (filename) => {
 };
 
 // 版本说明相关API
-router.get('/version/latest', asyncHandler(async (req, res) => {
-  const data = await readJsonFile('version_updates.json');
-  res.json(data.latest || { message: '暂无数据' });
-}));
+router.get('/version/latest', async (req, res) => {
+  try {
+    const data = await readJsonFile('version_updates.json');
+    res.json({
+      ...data.latest,
+      lastCheck: data.lastCheck
+    });
+  } catch (error) {
+    res.status(500).json({ error: '获取版本数据失败' });
+  }
+});
 
 router.get('/version/history', asyncHandler(async (req, res) => {
   const data = await readJsonFile('version_updates.json');
@@ -23,10 +30,17 @@ router.get('/version/history', asyncHandler(async (req, res) => {
 }));
 
 // 加载器相关API
-router.get('/loader/latest', asyncHandler(async (req, res) => {
-  const data = await readJsonFile('loader_updates.json');
-  res.json(data.latest || { message: '暂无数据' });
-}));
+router.get('/loader/latest', async (req, res) => {
+  try {
+    const data = await readJsonFile('loader_updates.json');
+    res.json({
+      ...data.latest,
+      lastCheck: data.lastCheck
+    });
+  } catch (error) {
+    res.status(500).json({ error: '获取加载器数据失败' });
+  }
+});
 
 router.get('/loader/history', asyncHandler(async (req, res) => {
   const data = await readJsonFile('loader_updates.json');
