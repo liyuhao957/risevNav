@@ -2,7 +2,6 @@
   <div class="header">
     <div class="main-container">
       <!-- <div class="date-current">{{ currentDate }}</div> -->
-       <div class="version" @click="dialogVisible = true">{{ version }}</div>
     </div>
     <el-dialog
       v-model="dialogVisible"
@@ -25,7 +24,6 @@ import VersionList from '@/components/version'
 
 const store = useStore();
 const currentDate = ref("");
-const version = ref("v1.0.0");
 const dialogVisible = ref(false);
 
 const getWeek = () => {
@@ -110,14 +108,5 @@ onMounted(() => {
   position: fixed;
   top: 10px;
   font-size: 12px;
-
-}
-.version {
-  position: absolute;
-  right: 20px;
-  font-size: 13px;
-  cursor: pointer;
-  top: 10px;
-  color: #909399;
 }
 </style>

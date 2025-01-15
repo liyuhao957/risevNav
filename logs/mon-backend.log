@@ -14,7 +14,7 @@ Monitor server is running on port 3001
 [32m[nodemon] starting `node src/app.js`[39m
 [32m[nodemon] restarting due to changes...[39m
 [32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
+Monitor server is running on port 3001
 [32m[nodemon] starting `node src/app.js`[39m
 [32m[nodemon] restarting due to changes...[39m
 [32m[nodemon] restarting due to changes...[39m
@@ -26,17 +26,11 @@ Monitor server is running on port 3001
 [32m[nodemon] restarting due to changes...[39m
 [32m[nodemon] starting `node src/app.js`[39m
 Monitor server is running on port 3001
+[0mGET /api/monitor/loader/latest [32m200[0m 5.212 ms - 511[0m
+[0mGET /api/monitor/loader/history [32m200[0m 6.424 ms - 81[0m
+[0mGET /api/monitor/loader/history [32m200[0m 1.078 ms - 81[0m
+[0mGET /api/monitor/loader/latest [32m200[0m 1.059 ms - 511[0m
 [32m[nodemon] restarting due to changes...[39m
 [32m[nodemon] restarting due to changes...[39m
 [32m[nodemon] starting `node src/app.js`[39m
 Monitor server is running on port 3001
-[0mGET /api/monitor/loader/latest [32m200[0m 2.767 ms - 511[0m
-[0mGET /api/monitor/version/latest [32m200[0m 4.816 ms - 1544[0m
-[0mGET /api/monitor/version/latest [32m200[0m 1.415 ms - 1544[0m
-[0mGET /api/monitor/version/history [32m200[0m 1.732 ms - 81[0m
-[0mGET /api/monitor/loader/latest [32m200[0m 3.533 ms - 511[0m
-[0mGET /api/monitor/version/latest [32m200[0m 2.534 ms - 1544[0m
-[0mGET /api/monitor/loader/latest [32m200[0m 1.537 ms - 511[0m
-[0mGET /api/monitor/loader/history [32m200[0m 1.348 ms - 81[0m
-[0mGET /api/monitor/version/latest [32m200[0m 2.499 ms - 1544[0m
-[0mGET /api/monitor/loader/latest [32m200[0m 2.346 ms - 511[0m
