@@ -1,4 +1,5 @@
 import axios from 'axios';
+import { ElMessage } from 'element-plus';
 
 // 创建axios实例
 const api = axios.create({
@@ -8,9 +9,23 @@ const api = axios.create({
 
 // 响应拦截器
 api.interceptors.response.use(
-  response => response.data,
+  response => {
+    const { code, message, data } = response.data;
+    
+    // 处理成功响应
+    if (code === 200) {
+      return data;
+    }
+    
+    // 处理错误响应
+    ElMessage.error(message || '请求失败');
+    return Promise.reject(new Error(message || '请求失败'));
+  },
   error => {
+    // 处理网络错误
+    const message = error.response?.data?.message || error.message || '网络错误';
     console.error('API请求错误:', error);
+    ElMessage.error(message);
     return Promise.reject(error);
   }
 );

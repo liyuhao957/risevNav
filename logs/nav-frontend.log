@@ -93,31 +93,30 @@
 [2K[1A[2K[G[10%] building (0/0 modules)
 [2K[1A[2K[G[10%] building (import loader babel-loader/lib/index.js)
 [2K[1A[2K[G[10%] building (0/1 modules)
-[2K[1A[2K[G[24%] building (1/7 modules)
+[2K[1A[2K[G[24%] building (1/4 modules)
 [2K[1A[2K[G[24%] building (import loader vue-loader/dist/index.js)
 [2K[1A[2K[G[24%] building (3/17 modules)
 [2K[1A[2K[G[24%] building (import loader vue-loader/dist/pitcher.js)
 [2K[1A[2K[G[24%] building (import loader vue-loader/dist/templateLoader.js)
-[2K[1A[2K[G[24%] building (8/24 modules)
+[2K[1A[2K[G[24%] building (8/28 modules)
 [2K[1A[2K[G[24%] building (import loader vue-style-loader/index.js)
 [2K[1A[2K[G[24%] building (import loader css-loader/dist/cjs.js)
 [2K[1A[2K[G[24%] building (import loader postcss-loader/dist/cjs.js)
 [2K[1A[2K[G[24%] building (8/33 modules)
 [2K[1A[2K[G[24%] building (import loader less-loader/dist/cjs.js)
 [2K[1A[2K[G[24%] building (8/42 modules)
-[2K[1A[2K[G[38%] building (16/231 modules)
+[2K[1A[2K[G[38%] building (20/233 modules)
 [2K[1A[2K[G[38%] building (import loader vue-loader/dist/stylePostLoader.js)
-[2K[1A[2K[G[38%] building (19/292 modules)
-[2K[1A[2K[G[38%] building (56/470 modules)
-[2K[1A[2K[G[38%] building (67/521 modules)
-[2K[1A[2K[G[38%] building (86/596 modules)
-[2K[1A[2K[G[38%] building (168/702 modules)
-[2K[1A[2K[G[51%] building (175/702 modules)
-[2K[1A[2K[G[51%] building (358/800 modules)
-[2K[1A[2K[G[51%] building (522/1286 modules)
+[2K[1A[2K[G[38%] building (22/234 modules)
+[2K[1A[2K[G[38%] building (38/397 modules)
+[2K[1A[2K[G[38%] building (70/517 modules)
+[2K[1A[2K[G[38%] building (111/596 modules)
+[2K[1A[2K[G[51%] building (167/696 modules)
+[2K[1A[2K[G[51%] building (359/794 modules)
+[2K[1A[2K[G[51%] building (500/1188 modules)
 [1m[33m[@vue/compiler-sfc][0m[33m `defineEmits` is a compiler macro and no longer needs to be imported.[0m
 
-[2K[1A[2K[G[51%] building (831/1481 modules)
+[2K[1A[2K[G[51%] building (700/1437 modules)
 [2K[1A[2K[G[65%] building (1609/1609 modules)
 [2K[1A[2K[G[65%] building 
 [2K[1A[2K[G[69%] building (finish)
@@ -201,10 +200,10 @@ onPlugin)
 [2K[1A[2K[G[94%] sealing (after seal)
 [2K[1A[2K[G[95%] emitting (emit)
 [2K[1A[2K[G[98%] emitting (after emit)
-[2K[1A[2K[GBuild finished at 15:46:49 by 0.000s
-[2K[1A[2K[GBuild finished at 15:46:49 by 0.000s
-[2K[1A[2K[GBuild finished at 15:46:49 by 0.000s
-[2K[1A[2K[G WARNING  Compiled with 1 warning3:46:49 PM
+[2K[1A[2K[GBuild finished at 16:30:22 by 0.000s
+[2K[1A[2K[GBuild finished at 16:30:22 by 0.000s
+[2K[1A[2K[GBuild finished at 16:30:22 by 0.000s
+[2K[1A[2K[G WARNING  Compiled with 1 warning4:30:22 PM
 
 [eslint] 
 /Users/ct/Desktop/risevNav/src/components/category-manager/index.vue
@@ -245,7 +244,7 @@ onPlugin)
 You may use special comments to disable some warnings.
 Use // eslint-disable-next-line to ignore the next line.
 Use /* eslint-disable */ to ignore all warnings in a file.
-Build finished at 15:46:49 by 0.000s
+Build finished at 16:30:22 by 0.000s
 [2K[1A[2K[G
   App running at:
   - Local:   http://localhost:8080/ 
@@ -254,12 +253,17 @@ Build finished at 15:46:49 by 0.000s
   Note that the development build is not optimized.
   To create a production build, run npm run build.
 
-Build finished at 15:46:49 by 0.000s
-[2K[1A[2K[GBuild finished at 15:46:49 by 0.000s
-[2K[1A[2K[GBuild finished at 15:46:49 by 0.000s
-[2K[1A[2K[GBuild finished at 15:46:49 by 0.000s
-[2K[1A[2K[GBuild finished at 15:46:49 by 0.000s
-[2K[1A[2K[GBuild finished at 15:46:49 by 0.000s
-[2K[1A[2K[GBuild finished at 15:46:49 by 0.000s
-[2K[1A[2K[GBuild finished at 15:46:49 by 0.000s
+Build finished at 16:30:22 by 0.000s
+[2K[1A[2K[GBuild finished at 16:30:22 by 0.000s
+[2K[1A[2K[GBuild finished at 16:30:22 by 0.000s
+[2K[1A[2K[GBuild finished at 16:30:22 by 0.000s
+[2K[1A[2K[GBuild finished at 16:30:22 by 0.000s
+[2K[1A[2K[GBuild finished at 16:30:22 by 0.000s
+[2K[1A[2K[GBuild finished at 16:30:22 by 0.000s
+[2K[1A[2K[GBuild finished at 16:30:22 by 0.000s
+[2K[1A[2K[GBuild finished at 16:33:44 by 0.000s
+[2K[1A[2K[GBuild finished at 16:33:44 by 0.000s
+[2K[1A[2K[GBuild finished at 16:33:44 by 0.000s
+[2K[1A[2K[GBuild finished at 16:33:44 by 0.000s
+[2K[1A[2K[GBuild finished at 16:33:44 by 0.000s
 [2K[1A[2K[G

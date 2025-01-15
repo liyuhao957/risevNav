@@ -3,6 +3,7 @@ import time
 import hashlib
 import json
 import os
+import shutil
 from datetime import datetime
 from bs4 import BeautifulSoup
 
@@ -14,59 +15,154 @@ class VersionMonitor:
         self.last_hash = None
         self.last_content = None
         self.data_file = '../monitor-server/data/version_updates.json'
+        self.backup_dir = '../monitor-server/data/backup'
+        self.max_backups = 5
         
-        # 确保数据目录存在
+        # 确保数据和备份目录存在
         os.makedirs(os.path.dirname(self.data_file), exist_ok=True)
+        os.makedirs(self.backup_dir, exist_ok=True)
         
-        # 初始化数据文件
+        # 初始化或恢复数据文件
+        self._init_or_recover_data()
+    
+    def _init_or_recover_data(self):
+        """初始化或恢复数据文件"""
         if not os.path.exists(self.data_file):
+            # 尝试从备份恢复
+            latest_backup = self._get_latest_backup()
+            if latest_backup:
+                try:
+                    shutil.copy2(latest_backup, self.data_file)
+                    print(f"从备份文件恢复数据: {latest_backup}")
+                    return
+                except Exception as e:
+                    print(f"恢复备份失败: {str(e)}")
+            
+            # 如果没有备份或恢复失败，创建新文件
             self._save_data({"latest": None, "history": [], "lastCheck": None})
+    
+    def _get_latest_backup(self):
+        """获取最新的备份文件"""
+        backup_files = [f for f in os.listdir(self.backup_dir) if f.startswith('version_updates_')]
+        if not backup_files:
+            return None
+        
+        backup_files.sort(reverse=True)
+        return os.path.join(self.backup_dir, backup_files[0])
+    
+    def _create_backup(self):
+        """创建数据文件的备份"""
+        try:
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            backup_file = os.path.join(self.backup_dir, f'version_updates_{timestamp}.json')
+            shutil.copy2(self.data_file, backup_file)
+            print(f"创建备份文件: {backup_file}")
+            
+            # 清理旧备份
+            self._cleanup_old_backups()
+        except Exception as e:
+            print(f"创建备份失败: {str(e)}")
+    
+    def _cleanup_old_backups(self):
+        """清理旧的备份文件，只保留最新的几个"""
+        backup_files = [f for f in os.listdir(self.backup_dir) if f.startswith('version_updates_')]
+        if len(backup_files) > self.max_backups:
+            backup_files.sort()
+            for old_file in backup_files[:-self.max_backups]:
+                try:
+                    os.remove(os.path.join(self.backup_dir, old_file))
+                    print(f"删除旧备份: {old_file}")
+                except Exception as e:
+                    print(f"删除旧备份失败: {str(e)}")
+    
+    def _read_data(self):
+        """读取数据文件"""
+        max_retries = 3
+        for attempt in range(max_retries):
+            try:
+                with open(self.data_file, 'r', encoding='utf-8') as f:
+                    return json.load(f)
+            except json.JSONDecodeError as e:
+                print(f"JSON解析错误: {str(e)}")
+                if attempt < max_retries - 1:
+                    print(f"尝试从备份恢复 ({attempt + 1}/{max_retries})...")
+                    self._restore_from_backup()
+                else:
+                    raise
+            except Exception as e:
+                print(f"读取数据失败: {str(e)}")
+                if attempt < max_retries - 1:
+                    print(f"重试 ({attempt + 1}/{max_retries})...")
+                    time.sleep(1)
+                else:
+                    raise
+    
+    def _restore_from_backup(self):
+        """从最新的备份文件恢复"""
+        latest_backup = self._get_latest_backup()
+        if latest_backup:
+            try:
+                shutil.copy2(latest_backup, self.data_file)
+                print(f"从备份文件恢复成功: {latest_backup}")
+            except Exception as e:
+                print(f"恢复备份失败: {str(e)}")
+                raise
     
     def _save_data(self, data):
         """保存数据到JSON文件"""
+        temp_file = f"{self.data_file}.tmp"
         try:
-            with open(self.data_file, 'w', encoding='utf-8') as f:
+            # 先写入临时文件
+            with open(temp_file, 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
+            
+            # 替换原文件
+            os.replace(temp_file, self.data_file)
             print(f"数据已保存到: {self.data_file}")
+            
+            # 创建备份
+            self._create_backup()
         except Exception as e:
             print(f"保存数据失败: {str(e)}")
+            # 清理临时文件
+            if os.path.exists(temp_file):
+                try:
+                    os.remove(temp_file)
+                except:
+                    pass
+            raise
     
     def _update_data(self, content):
         """更新数据文件"""
         try:
             # 读取现有数据
-            if os.path.exists(self.data_file):
-                with open(self.data_file, 'r', encoding='utf-8') as f:
-                    data = json.load(f)
-            else:
-                data = {"latest": None, "history": [], "lastCheck": None}
+            data = self._read_data()
             
-            # 检查是否有新版本
-            if data["latest"] and (
-                not content or 
-                data["latest"]["version"] != content["version"]
-            ):
-                # 将当前版本添加到历史记录
-                current_version = data["latest"].copy()
-                # 检查历史记录中是否已存在该版本
-                if not any(h["version"] == current_version["version"] for h in data["history"]):
-                    data["history"].append(current_version)
-                    # 按日期降序排序历史记录
-                    data["history"].sort(key=lambda x: x["date"], reverse=True)
+            # 如果是新版本，添加到历史记录
+            if data['latest'] is None or data['latest']['version'] != content['version']:
+                # 将当前的latest添加到history
+                if data['latest'] is not None:
+                    history_record = {
+                        **data['latest'],
+                        'lastCheck': data['lastCheck']
+                    }
+                    data['history'].insert(0, history_record)
+                
+                # 更新latest
+                data['latest'] = content
+                
+                # 限制历史记录数量为最近10条
+                data['history'] = data['history'][:10]
             
-            # 更新最新版本
-            if content:
-                data["latest"] = content
+            # 更新最后检查时间
+            data['lastCheck'] = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
             
-            # 更新检查时间
-            data["lastCheck"] = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-            
-            # 保存更新后的数据
+            # 保存数据
             self._save_data(data)
-            print("数据更新成功")
-            
+            print(f"数据更新成功: 版本 {content['version']}")
         except Exception as e:
             print(f"更新数据失败: {str(e)}")
+            raise
     
     def get_page_content(self):
         """获取网页特定内容"""

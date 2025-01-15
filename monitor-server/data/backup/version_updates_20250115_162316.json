@@ -1,0 +1,78 @@
+{
+  "latest": {
+    "version": "1118",
+    "updates": [
+      "【组件更新】",
+      "【ad-native-view】\n• ad-button在ad-native-view内部使用，必须绑定相同的adid\n\n参考文档：组件 >ad-native-view https://developer.huawei.com/consumer/cn/doc/quickApp-References/quickapp-component-ad-native-view-0000001813966981",
+      "【ad-template】\n• ad-template组件新增默认圆角样式border-radius\n\n参考文档：组件 >ad-template https://developer.huawei.com/consumer/cn/doc/quickApp-References/quickapp-component-ad-template-0000001866389333",
+      "【shortcut-button】\n• 该组件必须完整对用户可见，不可被任何元素覆盖或遮挡（含透明元素），否则会影响您的计费\n\n参考文档：组件 >shortcut-button https://developer.huawei.com/consumer/cn/doc/quickApp-References/quickapp-component-shortcut-button-0000001207139196",
+      "【ad-view】\n• 该组件必须完整对用户可见，不可被任何元素覆盖或遮挡（含透明元素），否则会影响您的计费\n\n参考文档：组件 >ad-view https://developer.huawei.com/consumer/cn/doc/quickApp-References/quickapp-component-ad-view-0000001330871396",
+      "\n【接口更新】",
+      "【应用配置】\n• 接口configuration.getFoldableState增加三折屏状态值\n\n参考文档：API > 系统能力 > 应用配置 https://developer.huawei.com/consumer/cn/doc/quickApp-References/quickapp-api-configuration-0000001074911860"
+    ],
+    "date": "2024-11-12"
+  },
+  "history": [
+    {
+      "version": "1117",
+      "updates": [
+        "【组件更新】",
+        "【ad-native-view】\n• 修复已知问题",
+        "【ad-template】\n• 优化性能表现",
+        "\n【接口更新】",
+        "【应用配置】\n• 修复已知问题"
+      ],
+      "date": "2024-11-10",
+      "lastCheck": "2025-01-15 16:16:47"
+    },
+    {
+      "version": "1116",
+      "updates": [
+        "【组件更新】",
+        "【video】\n• 新增画中画模式支持",
+        "【audio】\n• 优化音频播放性能",
+        "\n【接口更新】",
+        "【媒体】\n• 新增媒体播放控制接口"
+      ],
+      "date": "2024-11-08",
+      "lastCheck": "2025-01-15 16:15:00"
+    },
+    {
+      "version": "1115",
+      "updates": [
+        "【组件更新】",
+        "【map】\n• 新增地图组件自定义样式",
+        "【canvas】\n• 优化渲染性能",
+        "\n【接口更新】",
+        "【地理位置】\n• 新增高精度定位支持"
+      ],
+      "date": "2024-11-06",
+      "lastCheck": "2025-01-15 16:14:00"
+    },
+    {
+      "version": "1114",
+      "updates": [
+        "【组件更新】",
+        "【camera】\n• 新增相机组件美颜功能",
+        "【image】\n• 优化图片加载性能",
+        "\n【接口更新】",
+        "【设备】\n• 新增设备信息获取接口"
+      ],
+      "date": "2024-11-04",
+      "lastCheck": "2025-01-15 16:13:00"
+    },
+    {
+      "version": "1113",
+      "updates": [
+        "【组件更新】",
+        "【list】\n• 新增列表组件下拉刷新",
+        "【tabs】\n• 优化标签页切换动画",
+        "\n【接口更新】",
+        "【存储】\n• 新增文件系统接口"
+      ],
+      "date": "2024-11-02",
+      "lastCheck": "2025-01-15 16:12:00"
+    }
+  ],
+  "lastCheck": "2025-01-15 16:23:16"
+}
