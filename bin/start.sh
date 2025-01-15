@@ -123,13 +123,18 @@ start_monitor_scripts() {
     source "$PYTHON_VENV/bin/activate"
     
     cd "$SCRIPTS_DIR"
-    python3 "$PYTHON_SM_SCRIPT" > "$LOG_MONITOR_SM" 2>&1 &
+    # 使用 nohup 启动脚本
+    nohup python3 "$PYTHON_SM_SCRIPT" >> "$LOG_MONITOR_SM" 2>&1 & 
     SM_PID=$!
     log "说明监控脚本已启动 (PID: $SM_PID)" "$GREEN"
     
-    python3 "$PYTHON_JZQ_SCRIPT" > "$LOG_MONITOR_JZQ" 2>&1 &
+    nohup python3 "$PYTHON_JZQ_SCRIPT" >> "$LOG_MONITOR_JZQ" 2>&1 &
     JZQ_PID=$!
     log "加载器监控脚本已启动 (PID: $JZQ_PID)" "$GREEN"
+    
+    # 保存 PID 到变量中，方便后续使用
+    echo "$SM_PID" > "/tmp/monitor_sm.pid"
+    echo "$JZQ_PID" > "/tmp/monitor_jzq.pid"
     
     # 退出虚拟环境
     deactivate
@@ -170,13 +175,64 @@ main() {
 cleanup() {
     log "正在停止服务..." "$YELLOW"
     
-    # 获取所有子进程的PID
-    local pids=$(jobs -p)
+    # 获取监控脚本的 PID
+    local sm_pid=""
+    local jzq_pid=""
+    [ -f "/tmp/monitor_sm.pid" ] && sm_pid=$(cat "/tmp/monitor_sm.pid")
+    [ -f "/tmp/monitor_jzq.pid" ] && jzq_pid=$(cat "/tmp/monitor_jzq.pid")
     
-    # 如果有运行的进程，则终止它们
+    log "监控脚本PID - 说明: $sm_pid, 加载器: $jzq_pid" "$YELLOW"
+    
+    # 先停止监控脚本
+    if [ -n "$sm_pid" ]; then
+        log "正在停止说明监控脚本 (PID: $sm_pid)..." "$YELLOW"
+        kill -SIGINT $sm_pid 2>/dev/null
+        if [ $? -eq 0 ]; then
+            log "成功发送停止信号到说明监控脚本" "$GREEN"
+        else
+            log "发送停止信号到说明监控脚本失败" "$RED"
+        fi
+    else
+        log "未找到说明监控脚本的PID" "$RED"
+    fi
+    
+    if [ -n "$jzq_pid" ]; then
+        log "正在停止加载器监控脚本 (PID: $jzq_pid)..." "$YELLOW"
+        kill -SIGINT $jzq_pid 2>/dev/null
+        if [ $? -eq 0 ]; then
+            log "成功发送停止信号到加载器监控脚本" "$GREEN"
+        else
+            log "发送停止信号到加载器监控脚本失败" "$RED"
+        fi
+    else
+        log "未找到加载器监控脚本的PID" "$RED"
+    fi
+    
+    # 等待监控脚本处理完停止信号
+    log "等待监控脚本停止（5秒）..." "$YELLOW"
+    sleep 5
+    
+    # 检查脚本是否还在运行
+    if [ -n "$sm_pid" ] && ps -p $sm_pid > /dev/null 2>&1; then
+        log "说明监控脚本仍在运行，尝试强制终止..." "$RED"
+        kill -9 $sm_pid 2>/dev/null
+    fi
+    
+    if [ -n "$jzq_pid" ] && ps -p $jzq_pid > /dev/null 2>&1; then
+        log "加载器监控脚本仍在运行，尝试强制终止..." "$RED"
+        kill -9 $jzq_pid 2>/dev/null
+    fi
+    
+    # 获取其他子进程的 PID
+    local pids=$(jobs -p)
     if [ -n "$pids" ]; then
+        log "正在停止其他服务 (PIDs: $pids)..." "$YELLOW"
         kill $pids 2>/dev/null
     fi
+    
+    # 清理临时文件
+    log "清理临时文件..." "$YELLOW"
+    rm -f "/tmp/monitor_sm.pid" "/tmp/monitor_jzq.pid"
     
     log "服务已停止" "$GREEN"
     exit 0

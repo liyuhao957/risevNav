@@ -6,6 +6,46 @@ import os
 import shutil
 from datetime import datetime
 from bs4 import BeautifulSoup
+import re
+import signal
+
+def signal_handler(monitor_instance, signum, frame):
+    """信号处理函数"""
+    print("\n收到退出信号，正在停止监控...")
+    try:
+        print("准备发送停止通知...")
+        shutdown_message = {
+            "msg_type": "interactive",
+            "card": {
+                "config": {
+                    "wide_screen_mode": True
+                },
+                "header": {
+                    "template": "blue",
+                    "title": {
+                        "content": "快应用版本说明更新通知",
+                        "tag": "plain_text"
+                    }
+                },
+                "elements": [
+                    {
+                        "tag": "div",
+                        "text": {
+                            "tag": "lark_md",
+                            "content": "🔔 版本说明更新监控服务已停止"
+                        }
+                    }
+                ]
+            }
+        }
+        print("正在发送停止通知...")
+        monitor_instance.send_notification(shutdown_message, msg_type="post")
+        print("停止通知已发送")
+    except Exception as e:
+        print(f"发送停止通知时出错: {str(e)}")
+    finally:
+        # 确保退出进程
+        os._exit(0)
 
 class VersionMonitor:
     def __init__(self, url, webhook_url, check_interval=300):
@@ -24,6 +64,10 @@ class VersionMonitor:
         
         # 初始化或恢复数据文件
         self._init_or_recover_data()
+        
+        # 注册信号处理函数
+        signal.signal(signal.SIGINT, lambda s, f: signal_handler(self, s, f))
+        signal.signal(signal.SIGTERM, lambda s, f: signal_handler(self, s, f))
     
     def _init_or_recover_data(self):
         """初始化或恢复数据文件"""
@@ -403,7 +447,7 @@ class VersionMonitor:
                     
                     if content:
                         # 比较版本号
-                        if self._is_version_newer(content['version'], self.last_content['version']):
+                        if content['version'] != self.last_content['version']:
                             message = self._format_notification(content)
                             print(f"[{current_time}] 检测到新版本: {content['version']}")
                             self.send_notification(message, msg_type="post")
@@ -417,23 +461,17 @@ class VersionMonitor:
                             self._update_data(self.last_content)
                     
                     time.sleep(self.check_interval)
-                    
-                except KeyboardInterrupt:
-                    print("\n收到退出信号，正在停止监控...")
-                    shutdown_message = "🔔 版本说明更新监控服务已停止"
-                    self.send_notification(shutdown_message, msg_type="post")
-                    break
-                    
-                except Exception as e:
-                    error_msg = f"监控出错: {str(e)}"
-                    print(error_msg)
-                    self.send_notification(error_msg)
-                    time.sleep(60)  # 出错后等待1分钟再重试
+                
+                except Exception as e:  # 添加错误处理
+                    print(f"检查过程中出错: {str(e)}")
+                    print("60秒后重试...")
+                    time.sleep(60)
             
-        except KeyboardInterrupt:
-            print("\n收到退出信号，正在停止监控...")
-            shutdown_message = "🔔 版本更新监控服务已停止"
-            self.send_notification(shutdown_message, msg_type="post")
+        except Exception as e:
+            print(f"监控过程中出错: {str(e)}")
+            error_message = f"🔔 监控服务出错: {str(e)}"
+            self.send_notification(error_message)
+            time.sleep(60)  # 出错后等待1分钟再重试
 
     def _is_version_newer(self, new_version, old_version):
         """比较版本号"""

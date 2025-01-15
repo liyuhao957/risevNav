@@ -7,10 +7,10 @@
 [33m[nodemon] watching path(s): *.*[39m
 [33m[nodemon] watching extensions: js,mjs,cjs,json[39m
 [32m[nodemon] starting `node src/index.js`[39m
-[2025-01-15T08:30:09.405Z] Favicon服务运行在端口 3000
-[2025-01-15T08:32:50.951Z] GET /api/data
-[2025-01-15T08:32:50.960Z] GET /api/data
-[2025-01-15T08:32:50.972Z] GET /api/favicon?url=https:%2F%2Fdeveloper.huawei.com%2Fconsumer%2Fcn%2Fdoc%2FTools-Library%2Fquickapp-ide-download-0000001101172926%23ZH-CN_TOPIC_0000001101172926__section9347192715112
+[2025-01-15T09:18:47.504Z] Favicon服务运行在端口 3000
+[2025-01-15T09:19:00.208Z] GET /api/data
+[2025-01-15T09:19:00.223Z] GET /api/data
+[2025-01-15T09:19:00.242Z] GET /api/favicon?url=https:%2F%2Fdeveloper.huawei.com%2Fconsumer%2Fcn%2Fdoc%2FTools-Library%2Fquickapp-ide-download-0000001101172926%23ZH-CN_TOPIC_0000001101172926__section9347192715112
 [Favicon] 处理请求: https://developer.huawei.com/consumer/cn/doc/Tools-Library/quickapp-ide-download-0000001101172926#ZH-CN_TOPIC_0000001101172926__section9347192715112
 [Favicon] 规范化URL: https://developer.huawei.com/consumer/cn/doc/Tools-Library/quickapp-ide-download-0000001101172926#ZH-CN_TOPIC_0000001101172926__section9347192715112
 [Favicon] 开始获取HTML: https://developer.huawei.com/consumer/cn/doc/Tools-Library/quickapp-ide-download-0000001101172926#ZH-CN_TOPIC_0000001101172926__section9347192715112
@@ -21,31 +21,7 @@
   contentType: 'image/x-icon',
   size: 38078
 }
-[2025-01-15T08:32:51.302Z] GET /api/favicon?url=https:%2F%2Fdeveloper.huawei.com%2Fconsumer%2Fcn%2Fdoc%2FquickApp-Guides%2Fquickapp-version-updates-0000001079803874
-[Favicon] 处理请求: https://developer.huawei.com/consumer/cn/doc/quickApp-Guides/quickapp-version-updates-0000001079803874
-[Favicon] 规范化URL: https://developer.huawei.com/consumer/cn/doc/quickApp-Guides/quickapp-version-updates-0000001079803874
-[Favicon] 开始获取HTML: https://developer.huawei.com/consumer/cn/doc/quickApp-Guides/quickapp-version-updates-0000001079803874
-[Favicon] HTML获取成功
-[Favicon] 尝试link标签: link[rel="icon"] https://developer.huawei.com/config/favicon.ico
-[Favicon] 成功获取link标签favicon: {
-  url: 'https://developer.huawei.com/config/favicon.ico',
-  contentType: 'image/x-icon',
-  size: 38078
-}
-[2025-01-15T08:32:52.691Z] GET /api/data
-[2025-01-15T08:32:52.696Z] GET /api/data
-[2025-01-15T08:32:52.844Z] GET /api/favicon?url=https:%2F%2Fdeveloper.huawei.com%2Fconsumer%2Fcn%2Fdoc%2FTools-Library%2Fquickapp-ide-download-0000001101172926%23ZH-CN_TOPIC_0000001101172926__section9347192715112
-[Favicon] 处理请求: https://developer.huawei.com/consumer/cn/doc/Tools-Library/quickapp-ide-download-0000001101172926#ZH-CN_TOPIC_0000001101172926__section9347192715112
-[Favicon] 规范化URL: https://developer.huawei.com/consumer/cn/doc/Tools-Library/quickapp-ide-download-0000001101172926#ZH-CN_TOPIC_0000001101172926__section9347192715112
-[Favicon] 开始获取HTML: https://developer.huawei.com/consumer/cn/doc/Tools-Library/quickapp-ide-download-0000001101172926#ZH-CN_TOPIC_0000001101172926__section9347192715112
-[Favicon] HTML获取成功
-[Favicon] 尝试link标签: link[rel="icon"] https://developer.huawei.com/config/favicon.ico
-[Favicon] 成功获取link标签favicon: {
-  url: 'https://developer.huawei.com/config/favicon.ico',
-  contentType: 'image/x-icon',
-  size: 38078
-}
-[2025-01-15T08:32:53.359Z] GET /api/favicon?url=https:%2F%2Fdeveloper.huawei.com%2Fconsumer%2Fcn%2Fdoc%2FquickApp-Guides%2Fquickapp-version-updates-0000001079803874
+[2025-01-15T09:19:00.846Z] GET /api/favicon?url=https:%2F%2Fdeveloper.huawei.com%2Fconsumer%2Fcn%2Fdoc%2FquickApp-Guides%2Fquickapp-version-updates-0000001079803874
 [Favicon] 处理请求: https://developer.huawei.com/consumer/cn/doc/quickApp-Guides/quickapp-version-updates-0000001079803874
 [Favicon] 规范化URL: https://developer.huawei.com/consumer/cn/doc/quickApp-Guides/quickapp-version-updates-0000001079803874
 [Favicon] 开始获取HTML: https://developer.huawei.com/consumer/cn/doc/quickApp-Guides/quickapp-version-updates-0000001079803874

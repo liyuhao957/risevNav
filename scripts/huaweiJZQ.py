@@ -7,6 +7,45 @@ import shutil
 from datetime import datetime
 from bs4 import BeautifulSoup
 import re
+import signal
+
+def signal_handler(monitor_instance, signum, frame):
+    """信号处理函数"""
+    print("\n收到退出信号，正在停止监控...")
+    try:
+        print("准备发送停止通知...")
+        shutdown_message = {
+            "msg_type": "interactive",
+            "card": {
+                "config": {
+                    "wide_screen_mode": True
+                },
+                "header": {
+                    "template": "blue",
+                    "title": {
+                        "content": "快应用加载器更新通知",
+                        "tag": "plain_text"
+                    }
+                },
+                "elements": [
+                    {
+                        "tag": "div",
+                        "text": {
+                            "tag": "lark_md",
+                            "content": "🔔 加载器更新监控服务已停止"
+                        }
+                    }
+                ]
+            }
+        }
+        print("正在发送停止通知...")
+        monitor_instance.send_notification(shutdown_message, msg_type="post")
+        print("停止通知已发送")
+    except Exception as e:
+        print(f"发送停止通知时出错: {str(e)}")
+    finally:
+        # 确保退出进程
+        os._exit(0)
 
 class LoaderMonitor:
     def __init__(self, url, webhook_url, check_interval=300):
@@ -25,6 +64,10 @@ class LoaderMonitor:
         
         # 初始化或恢复数据文件
         self._init_or_recover_data()
+        
+        # 注册信号处理函数
+        signal.signal(signal.SIGINT, lambda s, f: signal_handler(self, s, f))
+        signal.signal(signal.SIGTERM, lambda s, f: signal_handler(self, s, f))
     
     def _init_or_recover_data(self):
         """初始化或恢复数据文件"""
@@ -174,6 +217,7 @@ class LoaderMonitor:
             retries = 3  # 添加重试机制
             for attempt in range(retries):
                 try:
+                    print(f"尝试获取初始内容 (尝试 {attempt + 1}/{retries})")
                     current_content = self.get_page_content()
                     if current_content:
                         break
@@ -184,6 +228,7 @@ class LoaderMonitor:
                     time.sleep(5)
             
             if current_content:
+                print("成功获取初始内容，准备发送启动通知")
                 startup_message = self._format_notification(current_content, is_startup=True)
                 self.send_notification(startup_message, msg_type="post")
                 self.last_hash = self.calculate_hash(current_content)
@@ -213,40 +258,16 @@ class LoaderMonitor:
                     
                     time.sleep(self.check_interval)
                 
-                except KeyboardInterrupt:
-                    raise  # 向外层抛出中断信号
                 except Exception as e:  # 添加错误处理
                     print(f"检查过程中出错: {str(e)}")
                     print("60秒后重试...")
                     time.sleep(60)
                 
-        except KeyboardInterrupt:
-            print("\n收到退出信号，正在停止监控...")
-            shutdown_message = {
-                "msg_type": "interactive",
-                "card": {
-                    "config": {
-                        "wide_screen_mode": True
-                    },
-                    "header": {
-                        "template": "blue",
-                        "title": {
-                            "content": "快应用加载器更新通知",
-                            "tag": "plain_text"
-                        }
-                    },
-                    "elements": [
-                        {
-                            "tag": "div",
-                            "text": {
-                                "tag": "lark_md",
-                                "content": "🔔 加载器更新监控服务已停止"
-                            }
-                        }
-                    ]
-                }
-            }
-            self.send_notification(shutdown_message, msg_type="post")
+        except Exception as e:
+            print(f"监控过程中出错: {str(e)}")
+            error_message = f"🔔 监控服务出错: {str(e)}"
+            self.send_notification(error_message)
+            time.sleep(60)  # 出错后等待1分钟再重试
     
     def get_page_content(self):
         """获取网页特定内容"""

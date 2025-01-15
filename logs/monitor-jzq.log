@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/Users/ct/Desktop/risevNav/scripts/huaweiJZQ.py", line 142, in <module>
+    monitor = LoaderMonitor(target_url, webhook_url)
+  File "/Users/ct/Desktop/risevNav/scripts/huaweiJZQ.py", line 66, in __init__
+    self._init_or_recover_data()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'LoaderMonitor' object has no attribute '_init_or_recover_data'

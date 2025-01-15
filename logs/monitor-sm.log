@@ -1,0 +1,7 @@
+Traceback (most recent call last):
+  File "/Users/ct/Desktop/risevNav/scripts/huaweiSM.py", line 140, in <module>
+    monitor = VersionMonitor(target_url, webhook_url, 300)
+  File "/Users/ct/Desktop/risevNav/scripts/huaweiSM.py", line 66, in __init__
+    self._init_or_recover_data()
+    ^^^^^^^^^^^^^^^^^^^^^^^^^^
+AttributeError: 'VersionMonitor' object has no attribute '_init_or_recover_data'
