@@ -5,7 +5,7 @@ const path = require('path');
 require('dotenv').config();
 
 const app = express();
-const port = process.env.PORT || 3000;
+const port = 3001;
 
 // 中间件
 app.use(cors());
@@ -31,5 +31,5 @@ app.use((err, req, res, next) => {
 
 // 启动服务器
 app.listen(port, () => {
-  console.log(`监控服务器运行在 http://localhost:${port}`);
+  console.log(`Monitor server is running on port ${port}`);
 }); 

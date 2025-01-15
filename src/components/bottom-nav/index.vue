@@ -11,7 +11,7 @@
 import { Monitor } from '@element-plus/icons-vue'
 
 const openMonitor = () => {
-  window.open('/monitor', '_blank')
+  window.open('http://localhost:5173', '_blank')
 }
 </script>
 
