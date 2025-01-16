@@ -8,17 +8,10 @@ module.exports = defineConfig({
   
   // 开发环境代理配置
   devServer: {
-    port: 8080,
+    port: 8081,
     proxy: {
       '/api': {
-        target: 'http://localhost:3000',
-        changeOrigin: true
-      },
-      '/monitor/api': {
         target: 'http://localhost:3001',
-        pathRewrite: {
-          '^/monitor/api': '/api'
-        },
         changeOrigin: true
       }
     }
