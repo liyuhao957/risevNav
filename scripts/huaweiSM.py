@@ -6,46 +6,6 @@ import os
 import shutil
 from datetime import datetime
 from bs4 import BeautifulSoup
-import re
-import signal
-
-def signal_handler(monitor_instance, signum, frame):
-    """信号处理函数"""
-    print("\n收到退出信号，正在停止监控...")
-    try:
-        print("准备发送停止通知...")
-        shutdown_message = {
-            "msg_type": "interactive",
-            "card": {
-                "config": {
-                    "wide_screen_mode": True
-                },
-                "header": {
-                    "template": "blue",
-                    "title": {
-                        "content": "快应用版本说明更新通知",
-                        "tag": "plain_text"
-                    }
-                },
-                "elements": [
-                    {
-                        "tag": "div",
-                        "text": {
-                            "tag": "lark_md",
-                            "content": "🔔 版本说明更新监控服务已停止"
-                        }
-                    }
-                ]
-            }
-        }
-        print("正在发送停止通知...")
-        monitor_instance.send_notification(shutdown_message, msg_type="post")
-        print("停止通知已发送")
-    except Exception as e:
-        print(f"发送停止通知时出错: {str(e)}")
-    finally:
-        # 确保退出进程
-        os._exit(0)
 
 class VersionMonitor:
     def __init__(self, url, webhook_url, check_interval=300):
@@ -63,124 +23,40 @@ class VersionMonitor:
         os.makedirs(self.backup_dir, exist_ok=True)
         
         # 初始化或恢复数据文件
-        self._init_or_recover_data()
-        
-        # 注册信号处理函数
-        signal.signal(signal.SIGINT, lambda s, f: signal_handler(self, s, f))
-        signal.signal(signal.SIGTERM, lambda s, f: signal_handler(self, s, f))
+        self._init_data()
     
-    def _init_or_recover_data(self):
-        """初始化或恢复数据文件"""
+    def _init_data(self):
+        """初始化数据文件"""
         if not os.path.exists(self.data_file):
-            # 尝试从备份恢复
-            latest_backup = self._get_latest_backup()
-            if latest_backup:
-                try:
-                    shutil.copy2(latest_backup, self.data_file)
-                    print(f"从备份文件恢复数据: {latest_backup}")
-                    return
-                except Exception as e:
-                    print(f"恢复备份失败: {str(e)}")
-            
-            # 如果没有备份或恢复失败，创建新文件
             self._save_data({"latest": None, "history": [], "lastCheck": None})
-    
-    def _get_latest_backup(self):
-        """获取最新的备份文件"""
-        backup_files = [f for f in os.listdir(self.backup_dir) if f.startswith('version_updates_')]
-        if not backup_files:
-            return None
-        
-        backup_files.sort(reverse=True)
-        return os.path.join(self.backup_dir, backup_files[0])
-    
-    def _create_backup(self):
-        """创建数据文件的备份"""
-        try:
-            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
-            backup_file = os.path.join(self.backup_dir, f'version_updates_{timestamp}.json')
-            shutil.copy2(self.data_file, backup_file)
-            print(f"创建备份文件: {backup_file}")
-            
-            # 清理旧备份
-            self._cleanup_old_backups()
-        except Exception as e:
-            print(f"创建备份失败: {str(e)}")
-    
-    def _cleanup_old_backups(self):
-        """清理旧的备份文件，只保留最新的几个"""
-        backup_files = [f for f in os.listdir(self.backup_dir) if f.startswith('version_updates_')]
-        if len(backup_files) > self.max_backups:
-            backup_files.sort()
-            for old_file in backup_files[:-self.max_backups]:
-                try:
-                    os.remove(os.path.join(self.backup_dir, old_file))
-                    print(f"删除旧备份: {old_file}")
-                except Exception as e:
-                    print(f"删除旧备份失败: {str(e)}")
-    
-    def _read_data(self):
-        """读取数据文件"""
-        max_retries = 3
-        for attempt in range(max_retries):
-            try:
-                with open(self.data_file, 'r', encoding='utf-8') as f:
-                    return json.load(f)
-            except json.JSONDecodeError as e:
-                print(f"JSON解析错误: {str(e)}")
-                if attempt < max_retries - 1:
-                    print(f"尝试从备份恢复 ({attempt + 1}/{max_retries})...")
-                    self._restore_from_backup()
-                else:
-                    raise
-            except Exception as e:
-                print(f"读取数据失败: {str(e)}")
-                if attempt < max_retries - 1:
-                    print(f"重试 ({attempt + 1}/{max_retries})...")
-                    time.sleep(1)
-                else:
-                    raise
-    
-    def _restore_from_backup(self):
-        """从最新的备份文件恢复"""
-        latest_backup = self._get_latest_backup()
-        if latest_backup:
-            try:
-                shutil.copy2(latest_backup, self.data_file)
-                print(f"从备份文件恢复成功: {latest_backup}")
-            except Exception as e:
-                print(f"恢复备份失败: {str(e)}")
-                raise
     
     def _save_data(self, data):
         """保存数据到JSON文件"""
-        temp_file = f"{self.data_file}.tmp"
         try:
-            # 先写入临时文件
-            with open(temp_file, 'w', encoding='utf-8') as f:
+            with open(self.data_file, 'w', encoding='utf-8') as f:
                 json.dump(data, f, ensure_ascii=False, indent=2)
-            
-            # 替换原文件
-            os.replace(temp_file, self.data_file)
             print(f"数据已保存到: {self.data_file}")
             
             # 创建备份
-            self._create_backup()
+            timestamp = datetime.now().strftime('%Y%m%d_%H%M%S')
+            backup_file = os.path.join(self.backup_dir, f'version_updates_{timestamp}.json')
+            shutil.copy2(self.data_file, backup_file)
+            
+            # 清理旧备份
+            backup_files = [f for f in os.listdir(self.backup_dir) if f.startswith('version_updates_')]
+            if len(backup_files) > self.max_backups:
+                backup_files.sort()
+                for old_file in backup_files[:-self.max_backups]:
+                    os.remove(os.path.join(self.backup_dir, old_file))
         except Exception as e:
             print(f"保存数据失败: {str(e)}")
-            # 清理临时文件
-            if os.path.exists(temp_file):
-                try:
-                    os.remove(temp_file)
-                except:
-                    pass
-            raise
     
     def _update_data(self, content):
         """更新数据文件"""
         try:
             # 读取现有数据
-            data = self._read_data()
+            with open(self.data_file, 'r', encoding='utf-8') as f:
+                data = json.load(f)
             
             # 如果是新版本，添加到历史记录
             if data['latest'] is None or data['latest']['version'] != content['version']:
@@ -203,10 +79,8 @@ class VersionMonitor:
             
             # 保存数据
             self._save_data(data)
-            print(f"数据更新成功: 版本 {content['version']}")
         except Exception as e:
             print(f"更新数据失败: {str(e)}")
-            raise
     
     def get_page_content(self):
         """获取网页特定内容"""
@@ -457,21 +331,25 @@ class VersionMonitor:
                             self._update_data(content)
                         else:
                             print(f"[{current_time}] 未检测到新版本")
-                            # 更新最后检查时间
-                            self._update_data(self.last_content)
                     
                     time.sleep(self.check_interval)
-                
-                except Exception as e:  # 添加错误处理
-                    print(f"检查过程中出错: {str(e)}")
-                    print("60秒后重试...")
-                    time.sleep(60)
+                    
+                except KeyboardInterrupt:
+                    print("\n收到退出信号，正在停止监控...")
+                    shutdown_message = "🔔 版本说明更新监控服务已停止"
+                    self.send_notification(shutdown_message, msg_type="post")
+                    break
+                    
+                except Exception as e:
+                    error_msg = f"监控出错: {str(e)}"
+                    print(error_msg)
+                    self.send_notification(error_msg)
+                    time.sleep(60)  # 出错后等待1分钟再重试
             
-        except Exception as e:
-            print(f"监控过程中出错: {str(e)}")
-            error_message = f"🔔 监控服务出错: {str(e)}"
-            self.send_notification(error_message)
-            time.sleep(60)  # 出错后等待1分钟再重试
+        except KeyboardInterrupt:
+            print("\n收到退出信号，正在停止监控...")
+            shutdown_message = "🔔 版本更新监控服务已停止"
+            self.send_notification(shutdown_message, msg_type="post")
 
     def _is_version_newer(self, new_version, old_version):
         """比较版本号"""

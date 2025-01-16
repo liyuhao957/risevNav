@@ -14,212 +14,26 @@ Monitor server is running on port 3001
 [32m[nodemon] starting `node src/app.js`[39m
 [32m[nodemon] restarting due to changes...[39m
 [32m[nodemon] restarting due to changes...[39m
-Monitor server is running on port 3001
-[32m[nodemon] starting `node src/app.js`[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
 [32m[nodemon] restarting due to changes...[39m
 [32m[nodemon] starting `node src/app.js`[39m
 Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[0mGET /api/monitor/loader/latest [32m200[0m 5.212 ms - 511[0m
-[0mGET /api/monitor/loader/history [32m200[0m 6.424 ms - 81[0m
-[0mGET /api/monitor/loader/history [32m200[0m 1.078 ms - 81[0m
-[0mGET /api/monitor/loader/latest [32m200[0m 1.059 ms - 511[0m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-[32m[nodemon] restarting due to changes...[39m
-Monitor server is running on port 3001
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[32m[nodemon] restarting due to changes...[39m
-[32m[nodemon] starting `node src/app.js`[39m
-Monitor server is running on port 3001
-[0mGET /api/monitor/version/latest [32m200[0m 4.068 ms - 1544[0m
-[0mGET /api/monitor/loader/latest [32m200[0m 8.360 ms - 511[0m
+[0mGET /api/monitor/loader/latest [32m200[0m 1.804 ms - 511[0m
+[0mGET /api/monitor/version/latest [32m200[0m 6.830 ms - 1544[0m
+[0mGET /api/monitor/version/latest [32m200[0m 2.712 ms - 1544[0m
+[0mGET /api/monitor/version/history [32m200[0m 1.779 ms - 81[0m
+[0mGET /api/monitor/version/latest [32m200[0m 2.636 ms - 1544[0m
+[0mGET /api/monitor/loader/latest [32m200[0m 2.629 ms - 511[0m
+[0mGET /api/monitor/loader/latest [32m200[0m 2.000 ms - 511[0m
+[0mGET /api/monitor/loader/history [32m200[0m 1.613 ms - 513[0m
+[0mGET /api/monitor/loader/latest [32m200[0m 3.040 ms - 511[0m
+[0mGET /api/monitor/version/latest [32m200[0m 3.166 ms - 1544[0m
+[0mGET /api/monitor/loader/latest [32m200[0m 1.758 ms - 511[0m
+[0mGET /api/monitor/loader/history [32m200[0m 1.949 ms - 513[0m
+[0mGET /api/monitor/loader/latest [32m200[0m 2.313 ms - 511[0m
+[0mGET /api/monitor/version/latest [32m200[0m 2.186 ms - 1544[0m
+[0mGET /api/monitor/version/latest [32m200[0m 2.733 ms - 1544[0m
+[0mGET /api/monitor/version/history [32m200[0m 2.512 ms - 81[0m
+[0mGET /api/monitor/version/latest [32m200[0m 2.419 ms - 1544[0m
+[0mGET /api/monitor/loader/latest [32m200[0m 3.050 ms - 511[0m
+[0mGET /api/monitor/loader/latest [32m200[0m 1.446 ms - 511[0m
+[0mGET /api/monitor/loader/history [32m200[0m 1.424 ms - 513[0m
